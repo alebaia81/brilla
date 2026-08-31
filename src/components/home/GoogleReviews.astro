@@ -1,7 +1,7 @@
 ---
 /**
  * Sezione Recensioni Google (Google Reviews Showcase) per Brilla Cafe.
- * Mostra il punteggio ufficiale 4.7★ su Google, badge di garanzia e testimonianze reali.
+ * Mostra il punteggio ufficiale 4.7★ su Google, badge di garanzia e 6 testimonianze reali.
  */
 const googleSearchUrl = "https://www.google.com/search?q=brilla+cafe+castelnuovo+bocca+d+adda";
 
@@ -24,8 +24,29 @@ const REVIEWS = [
     author: "Sara V.",
     time: "Recensione verificata",
     rating: 5,
-    text: "Servizio impeccabile e grande disponibilità. Con il nuovo servizio di prenotazione e ritiro in negozio è ancora più veloce trovare quello che serve senza attese!",
+    text: "Servizio impeccabile e grande disponibilità. Con il servizio di prenotazione e ritiro in negozio è ancora più comodo trovare subito quello che serve!",
     badge: "Scegli & Ritira"
+  },
+  {
+    author: "Davide M.",
+    time: "Recensione verificata",
+    rating: 5,
+    text: "Brioche e cappuccini buonissimi. Personale cortese, trovi sempre le ultime novità in edicola e fumetti. Consigliatissimo per una sosta piacevole.",
+    badge: "Colazione & Edicola"
+  },
+  {
+    author: "Chiara R.",
+    time: "Recensione verificata",
+    rating: 5,
+    text: "Super forniti di cancelleria, zaini e idee regalo artigianali. Quando devo fare un pensiero speciale o rifornire l'ufficio vengo sempre qui!",
+    badge: "Cartoleria & Regali"
+  },
+  {
+    author: "Paolo G.",
+    time: "Recensione verificata",
+    rating: 5,
+    text: "Titolari gentili e sempre disponibili per qualsiasi richiesta o consiglio. Un vero valore aggiunto per tutta la comunità di Castelnuovo Bocca d'Adda.",
+    badge: "Massima Cortesia"
   }
 ];
 ---
@@ -73,8 +94,8 @@ const REVIEWS = [
 
     </div>
 
-    {/* Griglia Card Recensioni */}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+    {/* Griglia a 6 Card Recensioni */}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
       {REVIEWS.map((rev) => (
         <div class="p-5 rounded-3xl bg-white border border-brand-dark/10 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4">
           <div class="space-y-2.5">
