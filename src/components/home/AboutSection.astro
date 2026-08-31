@@ -1,0 +1,106 @@
+---
+/**
+ * Sezione di presentazione "Chi Siamo" per la Home Page di Brilla Cafe.
+ * Riflette fedelmente i valori di vicinanza, accoglienza e qualità a Castelnuovo Bocca d'Adda.
+ */
+---
+
+<section id="chi-siamo" class="py-16 sm:py-20 bg-brand-cream/60 border-t border-brand-dark/10 relative overflow-hidden">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+      
+      {/* Colonna Sinistra: Immagine & Badge Locale */}
+      <div class="lg:col-span-5 relative">
+        <div class="relative rounded-3xl overflow-hidden shadow-2xl border border-brand-dark/15 aspect-[4/3] sm:aspect-square bg-brand-dark">
+          <img
+            src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800&auto=format&fit=crop&q=80"
+            alt="Brilla Cafe Castelnuovo Bocca d'Adda"
+            class="w-full h-full object-cover opacity-90 hover:scale-105 transition-transform duration-500"
+          />
+          <div class="absolute inset-0 bg-gradient-to-t from-brand-dark/90 via-brand-dark/30 to-transparent"></div>
+          
+          <div class="absolute bottom-6 left-6 right-6 text-white space-y-1">
+            <span class="px-3 py-1 rounded-full bg-brand-amber text-white text-[11px] font-bold uppercase tracking-wider inline-block">
+              Il Nostro Negozio &amp; Bar
+            </span>
+            <h4 class="text-lg sm:text-xl font-black">Via Umberto I, 35</h4>
+            <p class="text-xs text-white/80">Castelnuovo Bocca d'Adda (LO)</p>
+          </div>
+        </div>
+
+        {/* Floating Stat Card */}
+        <div class="absolute -bottom-4 -right-4 sm:-bottom-6 sm:-right-6 bg-white p-4 sm:p-5 rounded-2xl shadow-xl border border-brand-dark/10 hidden sm:flex items-center gap-3.5">
+          <div class="w-11 h-11 rounded-xl bg-brand-amber/15 text-brand-dark flex items-center justify-center text-xl font-bold">
+            ☕
+          </div>
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-brand-dark/50 block">Dal 1° caffè</span>
+            <span class="text-sm font-black text-brand-dark">Sempre con il sorriso</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Colonna Destra: Testo Ufficiale di Benvenuto e Storia */}
+      <div class="lg:col-span-7 space-y-6">
+        
+        <div>
+          <span class="px-3.5 py-1 rounded-full bg-brand-amber/15 text-brand-dark text-xs font-bold uppercase tracking-wider inline-block mb-3">
+            Chi Siamo
+          </span>
+          <h2 class="text-3xl sm:text-4xl font-black text-brand-dark tracking-tight leading-tight">
+            Benvenuti da <span class="text-brand-dark">Brilla</span> <span class="text-brand-cyan">Cafe’</span>
+          </h2>
+        </div>
+
+        {/* Citazione Ufficiale Richiesta */}
+        <div class="p-5 sm:p-6 rounded-2xl bg-white border-l-4 border-brand-cyan shadow-sm text-sm sm:text-base text-brand-dark font-medium leading-relaxed">
+          "Molto più di un bar, un'edicola e una cartoleria: siamo il cuore pulsante di <strong>Castelnuovo Bocca d’Adda</strong>, nati per accompagnare ogni momento della tua giornata con un sorriso, un ottimo caffè, tutto il necessario per la scuola e l'ufficio e i tuoi quotidiani preferiti, portando la nostra selezione direttamente a casa tua."
+        </div>
+
+        {/* Valori Card */}
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+          
+          <div class="p-4 rounded-2xl bg-white border border-brand-dark/10 shadow-2xs space-y-1.5">
+            <div class="flex items-center gap-2 text-brand-amber font-bold text-sm">
+              <span>☕</span>
+              <h4>Accoglienza e Tradizione</h4>
+            </div>
+            <p class="text-xs text-brand-dark/70 leading-relaxed">
+              La qualità e la familiarità di sempre al banco, con colazioni curate e una chiacchierata quotidiana tra compaesani.
+            </p>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-white border border-brand-dark/10 shadow-2xs space-y-1.5">
+            <div class="flex items-center gap-2 text-brand-cyan font-bold text-sm">
+              <span>🚀</span>
+              <h4>Comodità Digitale</h4>
+            </div>
+            <p class="text-xs text-brand-dark/70 leading-relaxed">
+              Scegli comodamente da smartphone e ritira in pochi istanti senza code, oppure richiedi la spedizione a casa.
+            </p>
+          </div>
+
+        </div>
+
+        <div class="pt-2 flex flex-col sm:flex-row items-center gap-4">
+          <a
+            href="/catalogo"
+            class="w-full sm:w-auto px-6 py-3.5 bg-brand-dark hover:bg-brand-dark/90 text-white text-xs font-bold rounded-xl transition-all shadow-md text-center"
+          >
+            Sfoglia il Nostro Catalogo Online →
+          </a>
+          <a
+            href="tel:+393500206743"
+            class="w-full sm:w-auto px-6 py-3.5 bg-white hover:bg-brand-cream text-brand-dark border border-brand-dark/15 text-xs font-bold rounded-xl transition-all text-center"
+          >
+            📞 Chiamaci: +39 350 020 6743
+          </a>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</section>
