@@ -5,6 +5,7 @@
  */
 import Layout from '../layouts/Layout.astro';
 import HeroSection from '../components/home/HeroSection.astro';
+import GoogleReviews from '../components/home/GoogleReviews.astro';
 import CategoryShowcase from '../components/home/CategoryShowcase.astro';
 import FeaturedProducts from '../components/home/FeaturedProducts';
 ---
@@ -17,10 +18,13 @@ import FeaturedProducts from '../components/home/FeaturedProducts';
     {/* 1. Hero Section con presentazione */}
     <HeroSection />
 
-    {/* 2. I 3 Reparti del Negozio */}
+    {/* 2. Recensioni Google Ufficiali (4.7 / 5) */}
+    <GoogleReviews />
+
+    {/* 3. I 3 Reparti del Negozio */}
     <CategoryShowcase />
 
-    {/* 3. Prodotti in Evidenza (React Island) */}
+    {/* 4. Prodotti in Evidenza (React Island) */}
     <FeaturedProducts client:visible />
 
     {/* 4. Banner Scegli e Ritira & Assistenza Locale */}

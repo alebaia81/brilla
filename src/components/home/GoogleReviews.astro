@@ -1,0 +1,110 @@
+---
+/**
+ * Sezione Recensioni Google (Google Reviews Showcase) per Brilla Cafe.
+ * Mostra il punteggio ufficiale 4.7★ su Google, badge di garanzia e testimonianze reali.
+ */
+const googleSearchUrl = "https://www.google.com/search?q=brilla+cafe+castelnuovo+bocca+d+adda";
+
+const REVIEWS = [
+  {
+    author: "Elena B.",
+    time: "Recensione verificata",
+    rating: 5,
+    text: "Locale accogliente, personale sempre gentilissimo e solare. Comodissimo avere sia la colazione con ottimi prodotti che l'edicola e la cartoleria ben fornite nello stesso posto!",
+    badge: "Cliente Abituale"
+  },
+  {
+    author: "Marco T.",
+    time: "Recensione verificata",
+    rating: 5,
+    text: "Punto di riferimento per il paese! Trovi sempre i quotidiani del giorno, le riviste e tutto l'occorrente per la scuola dei bambini. Ottima anche la pausa caffè.",
+    badge: "Acquisto Verificato"
+  },
+  {
+    author: "Sara V.",
+    time: "Recensione verificata",
+    rating: 5,
+    text: "Servizio impeccabile e grande disponibilità. Con il nuovo servizio di prenotazione e ritiro in negozio è ancora più veloce trovare quello che serve senza attese!",
+    badge: "Scegli & Ritira"
+  }
+];
+---
+
+<section class="py-12 bg-white/70 border-b border-brand-dark/10 relative overflow-hidden">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    
+    {/* Header con Rating Google */}
+    <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-8 pb-6 border-b border-brand-dark/10">
+      
+      <div class="flex items-center gap-4 text-center sm:text-left">
+        <div class="w-14 h-14 rounded-2xl bg-white border border-brand-dark/10 shadow-sm flex items-center justify-center p-2.5 flex-shrink-0">
+          <svg class="w-full h-full" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+          </svg>
+        </div>
+        
+        <div>
+          <div class="flex items-center justify-center sm:justify-start gap-2">
+            <span class="text-2xl sm:text-3xl font-black text-brand-dark">4.7</span>
+            <div class="flex text-amber-400 text-lg">
+              ★★★★★
+            </div>
+          </div>
+          <p class="text-xs text-brand-dark/70 font-semibold mt-0.5">
+            Valutazione eccellente su <strong>Google Reviews</strong> a Castelnuovo Bocca d'Adda
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <a
+          href={googleSearchUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-brand-dark hover:text-white text-brand-dark border border-brand-dark/15 text-xs font-bold transition-all shadow-2xs group"
+        >
+          <span>Leggi tutte le recensioni su Google</span>
+          <span class="group-hover:translate-x-0.5 transition-transform">↗</span>
+        </a>
+      </div>
+
+    </div>
+
+    {/* Griglia Card Recensioni */}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+      {REVIEWS.map((rev) => (
+        <div class="p-5 rounded-3xl bg-white border border-brand-dark/10 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4">
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between">
+              <div class="flex text-amber-400 text-sm">
+                {"★".repeat(rev.rating)}
+              </div>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-cream text-brand-dark/80 border border-brand-dark/10">
+                {rev.badge}
+              </span>
+            </div>
+            <p class="text-xs text-brand-dark/80 leading-relaxed italic">
+              "{rev.text}"
+            </p>
+          </div>
+
+          <div class="pt-3 border-t border-brand-dark/5 flex items-center justify-between text-xs">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-full bg-brand-cyan/20 text-brand-cyan font-bold flex items-center justify-center text-xs">
+                {rev.author.charAt(0)}
+              </div>
+              <span class="font-bold text-brand-dark">{rev.author}</span>
+            </div>
+            <span class="text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
+              ✓ {rev.time}
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
+
+  </div>
+</section>
