@@ -1,0 +1,127 @@
+---
+/**
+ * Hero Section per la Home Page di Brilla Cafe.
+ * Presentazione calda, ambrata e focalizzata sui 3 reparti + pickup in negozio.
+ */
+---
+
+<section class="relative overflow-hidden pt-8 pb-16 lg:py-24 bg-gradient-to-b from-brand-cream via-brand-cream to-white">
+  
+  {/* Elementi decorativi di sfondo */}
+  <div class="absolute -top-24 -right-24 w-96 h-96 bg-brand-amber/10 rounded-full blur-3xl pointer-events-none"></div>
+  <div class="absolute top-1/2 -left-24 w-80 h-80 bg-badge-cartoleria/5 rounded-full blur-3xl pointer-events-none"></div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      
+      {/* Testi e CTA */}
+      <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
+        
+        {/* Badge Locale */}
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-amber/15 border border-brand-amber/30 text-brand-dark text-xs font-bold tracking-wide shadow-2xs">
+          <span class="w-2 h-2 rounded-full bg-brand-amber animate-ping"></span>
+          <span>Castelnuovo Bocca d'Adda (LO)</span>
+        </div>
+
+        {/* Titolo principale ad alto impatto */}
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black text-brand-dark tracking-tight leading-[1.1]">
+          Il tuo shop di fiducia per <span class="text-brand-amber underline decoration-brand-amber/30 underline-offset-8">Cartoleria</span>, <span class="text-emerald-700">Edicola</span> &amp; <span class="text-rose-600">Gift</span>.
+        </h1>
+
+        <p class="text-base sm:text-lg text-brand-dark/75 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+          Tutto il necessario per la scuola e l’ufficio, le riviste e i fumetti del mese, o un regalo speciale. 
+          <strong>Scegli online e ritira in negozio</strong> senza spese oppure ricevi comodamente a casa.
+        </p>
+
+        {/* CTA Buttons */}
+        <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
+          <a
+            href="/catalogo"
+            class="w-full sm:w-auto px-8 py-4 bg-brand-amber hover:bg-brand-amber/90 text-white text-sm font-bold rounded-2xl shadow-lg shadow-brand-amber/25 hover:shadow-xl transition-all text-center"
+          >
+            📚 Esplora Tutto il Catalogo
+          </a>
+
+          <a
+            href="#reparti"
+            class="w-full sm:w-auto px-6 py-4 bg-white hover:bg-brand-dark/5 text-brand-dark border border-brand-dark/15 text-sm font-semibold rounded-2xl transition-all text-center"
+          >
+            I Nostri 3 Reparti ↓
+          </a>
+        </div>
+
+        {/* Feature Pill Tags */}
+        <div class="pt-6 border-t border-brand-dark/10 grid grid-cols-3 gap-2 sm:gap-4 max-w-lg mx-auto lg:mx-0 text-center">
+          <div class="p-2 sm:p-3 rounded-xl bg-white/60 border border-brand-dark/5 shadow-2xs">
+            <span class="text-lg block mb-0.5">⚡</span>
+            <span class="text-[11px] sm:text-xs font-bold text-brand-dark block">Scegli &amp; Ritira</span>
+            <span class="text-[10px] text-brand-dark/50 hidden sm:block">Zero spese in negozio</span>
+          </div>
+
+          <div class="p-2 sm:p-3 rounded-xl bg-white/60 border border-brand-dark/5 shadow-2xs">
+            <span class="text-lg block mb-0.5">📦</span>
+            <span class="text-[11px] sm:text-xs font-bold text-brand-dark block">Spedizione Rapida</span>
+            <span class="text-[10px] text-brand-dark/50 hidden sm:block">Con PayPal protetto</span>
+          </div>
+
+          <div class="p-2 sm:p-3 rounded-xl bg-white/60 border border-brand-dark/5 shadow-2xs">
+            <span class="text-lg block mb-0.5">💬</span>
+            <span class="text-[11px] sm:text-xs font-bold text-brand-dark block">Contatto WhatsApp</span>
+            <span class="text-[10px] text-brand-dark/50 hidden sm:block">Assistenza diretta</span>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Vetrina Visiva Hero */}
+      <div class="lg:col-span-5 relative">
+        <div class="relative mx-auto max-w-md lg:max-w-none">
+          
+          {/* Card Principale Illustrata */}
+          <div class="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white aspect-[4/5] bg-brand-cream">
+            <img
+              src="https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=800&auto=format&fit=crop&q=80"
+              alt="Atmosfera accogliente di Brilla Cafe a Castelnuovo Bocca d'Adda"
+              class="w-full h-full object-cover"
+              loading="eager"
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-brand-dark/80 via-brand-dark/20 to-transparent"></div>
+            
+            {/* Tag in overlay */}
+            <div class="absolute bottom-6 left-6 right-6 text-white">
+              <span class="px-3 py-1 bg-brand-amber text-white text-[11px] font-bold uppercase tracking-wider rounded-lg inline-block mb-2 shadow-sm">
+                Benvenuti al Brilla
+              </span>
+              <h3 class="text-xl font-bold">Un caffè, il tuo giornale preferito e i quaderni per la scuola.</h3>
+              <p class="text-xs text-white/80 mt-1">Via Umberto I, 35 · Castelnuovo Bocca d'Adda</p>
+            </div>
+          </div>
+
+          {/* Badge flottante Novità */}
+          <div class="absolute -top-4 -left-4 bg-white p-3.5 rounded-2xl shadow-xl border border-brand-dark/10 flex items-center gap-3 animate-bounce sm:flex hidden">
+            <span class="w-10 h-10 rounded-xl bg-badge-cartoleria/15 text-badge-cartoleria flex items-center justify-center font-bold text-lg">
+              ✏️
+            </span>
+            <div>
+              <span class="text-xs font-bold text-brand-dark block">Scuola &amp; Ufficio</span>
+              <span class="text-[10px] text-brand-dark/60">Oltre 50 articoli disponibili</span>
+            </div>
+          </div>
+
+          {/* Badge flottante Edicola */}
+          <div class="absolute -bottom-4 -right-4 bg-white p-3.5 rounded-2xl shadow-xl border border-brand-dark/10 flex items-center gap-3 hidden sm:flex">
+            <span class="w-10 h-10 rounded-xl bg-badge-edicola/15 text-badge-edicola flex items-center justify-center font-bold text-lg">
+              📰
+            </span>
+            <div>
+              <span class="text-xs font-bold text-brand-dark block">Edicola del Mese</span>
+              <span class="text-[10px] text-brand-dark/60">Arrivi settimanali</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>

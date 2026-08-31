@@ -1,0 +1,118 @@
+---
+/**
+ * Footer Astro con informazioni aziendali ufficiali, dati fiscali, orari e link Admin.
+ */
+---
+
+<footer class="bg-brand-dark text-white/80 pt-16 pb-12 border-t border-brand-dark/20 mt-20">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+      
+      {/* Colonna 1: Brand & Dati Fiscali */}
+      <div class="space-y-4 md:col-span-1">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-brand-amber text-white flex items-center justify-center font-bold text-lg">
+            ☕
+          </div>
+          <span class="text-xl font-bold tracking-tight text-white">
+            Brilla <span class="text-brand-amber font-light">Cafe’</span>
+          </span>
+        </div>
+        <p class="text-xs text-white/70 leading-relaxed">
+          <strong>Brilla SAS di Bricchi Sara e c.</strong><br />
+          Il tuo punto di riferimento a Castelnuovo Bocca d'Adda per articoli scolastici, cancelleria, edicola del mese e idee regalo.
+        </p>
+        
+        <div class="pt-2 text-[11px] text-white/60 space-y-1 border-t border-white/10">
+          <p>📍 <strong>Sede:</strong> Via Umberto I, 35 – 26843 Castelnuovo Bocca d’Adda (LO)</p>
+          <p>🏢 <strong>P.IVA:</strong> 11824030966</p>
+          <p>📄 <strong>Codice SDI:</strong> W7YVJK9</p>
+        </div>
+      </div>
+
+      {/* Colonna 2: Categorie Veloci */}
+      <div class="space-y-3">
+        <h4 class="text-sm font-bold text-white uppercase tracking-wider">I Nostri Reparti</h4>
+        <ul class="space-y-2 text-xs">
+          <li>
+            <a href="/catalogo?tipo=cartoleria" class="hover:text-brand-amber transition-colors flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-badge-cartoleria"></span>
+              Cartoleria Scuola &amp; Ufficio
+            </a>
+          </li>
+          <li>
+            <a href="/catalogo?tipo=edicola" class="hover:text-brand-amber transition-colors flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-badge-edicola"></span>
+              Edicola, Quotidiani &amp; Riviste
+            </a>
+          </li>
+          <li>
+            <a href="/catalogo?tipo=bar_gift" class="hover:text-brand-amber transition-colors flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-badge-gift"></span>
+              Bar, Tazze &amp; Gadget Regalo
+            </a>
+          </li>
+          <li>
+            <a href="/catalogo" class="hover:text-brand-amber transition-colors text-brand-amber font-medium">
+              → Tutto il Catalogo Online
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      {/* Colonna 3: Orari e Ritiro in Negozio */}
+      <div class="space-y-3">
+        <h4 class="text-sm font-bold text-white uppercase tracking-wider">Orari &amp; Ritiro</h4>
+        <div class="text-xs text-white/70 space-y-1.5">
+          <p><strong class="text-white font-medium">Lunedì – Sabato:</strong> 06:30 – 19:30</p>
+          <p><strong class="text-white font-medium">Domenica:</strong> 07:00 – 13:00</p>
+          <div class="mt-3 p-2.5 rounded-lg bg-white/5 border border-white/10">
+            <span class="text-[11px] text-brand-amber font-semibold block mb-0.5">🛍️ Scegli &amp; Ritira Gratuito</span>
+            <span class="text-[11px] text-white/60">Ordina online e ritira al locale in Via Umberto I 35!</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Colonna 4: Contatti Diretti & WhatsApp */}
+      <div class="space-y-3">
+        <h4 class="text-sm font-bold text-white uppercase tracking-wider">Contatti</h4>
+        <div class="text-xs text-white/70 space-y-1.5">
+          <p>📞 <strong>Telefono / WhatsApp:</strong><br />
+            <a href="tel:+393500206743" class="text-white hover:text-brand-amber font-semibold transition-colors">
+              +39 350 020 6743
+            </a>
+          </p>
+        </div>
+        <div class="pt-2">
+          <a
+            href="https://wa.me/393500206743?text=Ciao%20Brilla%20Cafe%E2%80%99,%20vorrei%20informazioni%20su%20un%20prodotto"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 px-4 py-2.5 bg-[#25D366] hover:bg-[#20ba59] text-white text-xs font-bold rounded-xl transition-all shadow-sm"
+          >
+            <span>💬 Scrivici su WhatsApp</span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+    {/* Bottom bar con dati legali e copyright */}
+    <div class="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/40">
+      <p>
+        © {new Date().getFullYear()} Brilla SAS di Bricchi Sara e c. · P.IVA 11824030966 · Via Umberto I, 35, Castelnuovo Bocca d’Adda (LO).
+      </p>
+      <div class="flex items-center gap-6">
+        <a href="/catalogo" class="hover:text-white transition-colors">Catalogo</a>
+        <a href="/checkout" class="hover:text-white transition-colors">Carrello &amp; Checkout</a>
+        <a href="/privacy" class="hover:text-white transition-colors">Privacy Policy</a>
+        <a href="/cookie" class="hover:text-white transition-colors">Cookie Policy</a>
+        <a href="/admin" class="hover:text-brand-amber text-white/50 transition-colors flex items-center gap-1">
+          🔒 <span>Area Riservata</span>
+        </a>
+      </div>
+    </div>
+
+  </div>
+</footer>

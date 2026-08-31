@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Allow: /catalogo
+Allow: /prodotto/
+
+# Pagine dinamiche e riservate
+Disallow: /admin/
+Disallow: /admin
+Disallow: /checkout
+Disallow: /conferma
+
+# Sitemap
+Sitemap: https://brillacafe.it/sitemap-index.xml

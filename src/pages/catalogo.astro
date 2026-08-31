@@ -1,0 +1,29 @@
+---
+/**
+ * Pagina Catalogo Prodotti Astro.
+ * Carica il componente React interattivo CatalogPage con supporto query params.
+ */
+import Layout from '../layouts/Layout.astro';
+import CatalogPage from '../components/catalogo/CatalogPage';
+
+// Estrai eventuale filtro tipo iniziale dai parametri URL server-side (se presenti)
+const url = Astro.url;
+const initialTipo = url.searchParams.get('tipo') || 'all';
+
+// Schema JSON-LD per ItemList
+const catalogSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: 'Catalogo Prodotti Brilla Cafe',
+  description: 'Articoli di cartoleria, scuola, edicola e idee regalo a Castelnuovo Bocca d\'Adda',
+  url: 'https://brillacafe.it/catalogo',
+};
+---
+
+<Layout
+  title="Catalogo Prodotti — Brilla Cafe (Cartoleria, Edicola & Bar)"
+  description="Scopri il catalogo completo di Brilla Cafe: penne, quaderni, zaini, riviste in edicola, quotidiani, tazze regalo e gadget. Ritiro a Castelnuovo Bocca d'Adda o spedizione."
+  schema={catalogSchema}
+>
+  <CatalogPage client:load initialTipo={initialTipo} />
+</Layout>

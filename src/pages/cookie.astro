@@ -1,0 +1,162 @@
+---
+/**
+ * Informativa Estesa sui Cookie e Archiviazione Locale (Cookie Policy).
+ */
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout
+  title="Informativa sui Cookie (Cookie Policy) — Brilla Cafe’"
+  description="Informativa sull'utilizzo esclusivo di cookie tecnici e archiviazione locale (localStorage) per Brilla Cafe di Brilla SAS."
+>
+  <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+    
+    {/* Header pagina */}
+    <div class="mb-10 pb-6 border-b border-brand-dark/10">
+      <span class="px-3.5 py-1 rounded-full bg-brand-amber/15 text-brand-dark text-xs font-bold uppercase tracking-wider inline-block mb-3">
+        Cookie &amp; Storage Locale
+      </span>
+      <h1 class="text-3xl sm:text-4xl font-black text-brand-dark tracking-tight">
+        Informativa Estesa sui Cookie (Cookie Policy)
+      </h1>
+      <p class="text-xs sm:text-sm text-brand-dark/60 mt-2 font-medium">
+        Ai sensi del Provvedimento del Garante Privacy dell'8 maggio 2014 e Linee Guida del 10 giugno 2021 · <em>Ultimo aggiornamento: Agosto 2026</em>
+      </p>
+    </div>
+
+    {/* Contenuto Cookie Policy */}
+    <div class="bg-white rounded-3xl p-6 sm:p-10 border border-brand-dark/10 shadow-sm space-y-8 text-xs sm:text-sm text-brand-dark/85 leading-relaxed">
+      
+      <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-950 font-medium">
+        Questo sito web utilizza esclusivamente <strong>cookie tecnici e strumenti di archiviazione locale (<code>localStorage</code>) strettamente necessari</strong> al funzionamento del sito e alla gestione del carrello acquisti.<br /><br />
+        <strong>Questo sito NON utilizza cookie di profilazione, NON utilizza strumenti di tracciamento pubblicitario e NON fa uso di software di analisi statistica invasivi di terze parti (come Google Analytics, Meta Pixel, ecc.).</strong>
+      </div>
+
+      {/* 1. Cosa sono i Cookie e localStorage */}
+      <section class="space-y-3 pt-4 border-t border-brand-dark/10">
+        <h2 class="text-lg font-bold text-brand-dark">
+          1. Cosa sono i Cookie e l'Archiviazione Locale?
+        </h2>
+        <ul class="list-disc pl-5 space-y-2">
+          <li>
+            I <strong>cookie</strong> sono piccoli file di testo che i siti visitati dagli utenti inviano ai loro terminali, dove vengono memorizzati per essere ritrasmessi agli stessi siti alla visita successiva.
+          </li>
+          <li>
+            Il <strong><code>localStorage</code> (Archiviazione Locale)</strong> è una tecnologia del browser che consente a un sito web di salvare dati localmente sul dispositivo dell'utente in modo sicuro e senza scadenza automatica, permettendo al carrello della spesa di non perdersi al ricaricamento della pagina o tra una sessione e l'altra.
+          </li>
+        </ul>
+      </section>
+
+      {/* 2. Tipologie di Strumenti Utilizzati */}
+      <section class="space-y-4 pt-4 border-t border-brand-dark/10">
+        <h2 class="text-lg font-bold text-brand-dark">
+          2. Tipologie di Strumenti Utilizzati da questo Sito
+        </h2>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border border-brand-dark/10 rounded-2xl overflow-hidden text-xs">
+            <thead class="bg-brand-cream/60 text-brand-dark font-extrabold uppercase text-[10px]">
+              <tr>
+                <th class="p-3 border-b border-brand-dark/10">Nome Chiave / Storage</th>
+                <th class="p-3 border-b border-brand-dark/10">Tipologia</th>
+                <th class="p-3 border-b border-brand-dark/10">Durata</th>
+                <th class="p-3 border-b border-brand-dark/10">Finalità</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-brand-dark/5">
+              <tr>
+                <td class="p-3 font-mono font-bold text-brand-dark">brilla_cart_v1 (localStorage)</td>
+                <td class="p-3">Tecnico / Funzionale</td>
+                <td class="p-3">Persistente (fino a svuotamento manuale)</td>
+                <td class="p-3">Memorizza gli articoli aggiunti al carrello durante la sessione di spesa dell'utente.</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-mono font-bold text-brand-dark">brilla_cookie_consent (localStorage)</td>
+                <td class="p-3">Tecnico / Consenso</td>
+                <td class="p-3">Persistente</td>
+                <td class="p-3">Memorizza la presa visione dell'informativa tecnica da parte dell'utente.</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-mono font-bold text-brand-dark">brilla_admin_auth_v1 (sessionStorage)</td>
+                <td class="p-3">Tecnico / Sicurezza</td>
+                <td class="p-3">Fino alla chiusura della scheda</td>
+                <td class="p-3">Gestisce in sicurezza la sessione di accesso riservata all'amministratore del negozio.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* 3. Base Giuridica ed Esenzione */}
+      <section class="space-y-3 pt-4 border-t border-brand-dark/10">
+        <h2 class="text-lg font-bold text-brand-dark">
+          3. Base Giuridica ed Esenzione dal Consenso Preventivo
+        </h2>
+        <p>
+          Poiché questo sito web installa <strong>esclusivamente strumenti tecnici essenziali</strong> per l'erogazione del servizio richiesto dall'utente (es. mantenimento degli articoli nel carrello e navigazione sicura):
+        </p>
+        <ul class="list-disc pl-5 space-y-1">
+          <li><strong>Non è richiesto il consenso preventivo dell'utente (blocco preventivo)</strong> ai sensi dell'art. 122 del D.lgs. 196/2003 (Codice Privacy) e del Regolamento UE 2016/679.</li>
+          <li>Il banner informativo mostrato al primo accesso ha mero scopo di trasparenza informativa verso l'utente.</li>
+        </ul>
+      </section>
+
+      {/* 4. Servizi di Terze Parti */}
+      <section class="space-y-3 pt-4 border-t border-brand-dark/10">
+        <h2 class="text-lg font-bold text-brand-dark">
+          4. Servizi di Terze Parti
+        </h2>
+        <ul class="list-disc pl-5 space-y-2">
+          <li>
+            <strong>PayPal:</strong> Durante il checkout con pagamento elettronico, l'utente interagisce con i componenti di PayPal. Tali elementi possono generare cookie tecnici e antifrode gestiti direttamente da PayPal secondo la propria <a href="https://www.paypal.com/it/webapps/mpp/ua/privacy-full" target="_blank" rel="noopener noreferrer" class="text-brand-amber font-bold hover:underline">Informativa sulla Privacy di PayPal</a>.
+          </li>
+          <li>
+            <strong>WhatsApp Direct:</strong> I pulsanti di contatto/notifica rimandano direttamente tramite link esterno all'applicazione WhatsApp (<code>wa.me</code>). Nessun dato o cookie viene scambiato prima che l'utente decida attivamente di cliccare sul link.
+          </li>
+        </ul>
+      </section>
+
+      {/* 5. Come Disabilitare o Cancellare i Dati */}
+      <section class="space-y-3 pt-4 border-t border-brand-dark/10">
+        <h2 class="text-lg font-bold text-brand-dark">
+          5. Come Disabilitare o Cancellare i Dati Salvati
+        </h2>
+        <p>L'utente può in qualsiasi momento gestire, disattivare o cancellare i dati archiviati localmente e i cookie modificando le impostazioni del proprio browser:</p>
+        <ul class="list-disc pl-5 space-y-1">
+          <li><strong>Chrome:</strong> Impostazioni &gt; Privacy e sicurezza &gt; Cookie e altri dati dei siti</li>
+          <li><strong>Safari:</strong> Preferenze &gt; Privacy &gt; Gestisci dati siti web</li>
+          <li><strong>Firefox:</strong> Opzioni &gt; Privacy e sicurezza &gt; Cookie e dati dei siti web</li>
+          <li><strong>Edge:</strong> Impostazioni &gt; Cookie e autorizzazioni sito</li>
+        </ul>
+        <p class="text-xs text-brand-dark/60 italic pt-1">
+          Nota: La disabilitazione della memoria locale del browser potrebbe impedire il corretto funzionamento del carrello e la conclusione degli ordini sul sito.
+        </p>
+      </section>
+
+      {/* 6. Contatti */}
+      <section class="space-y-2 pt-4 border-t border-brand-dark/10">
+        <h2 class="text-lg font-bold text-brand-dark">
+          6. Contatti del Titolare
+        </h2>
+        <p>Per qualsiasi chiarimento in merito alla presente policy, è possibile contattare:</p>
+        <div class="p-4 rounded-2xl bg-brand-cream/60 border border-brand-dark/10 text-xs space-y-1">
+          <p><strong>Brilla SAS di Bricchi Sara e c.</strong></p>
+          <p>Via Umberto I, 35 – 26843 Castelnuovo Bocca d’Adda (LO)</p>
+          <p>Telefono / WhatsApp: <strong>+39 350 020 6743</strong></p>
+        </div>
+      </section>
+
+    </div>
+
+    {/* Ritorno */}
+    <div class="mt-8 text-center">
+      <a
+        href="/"
+        class="inline-flex items-center gap-2 px-6 py-3 bg-brand-dark hover:bg-brand-dark/90 text-white text-xs font-bold rounded-xl transition-all shadow-sm"
+      >
+        ← Torna alla Home Page
+      </a>
+    </div>
+
+  </main>
+</Layout>

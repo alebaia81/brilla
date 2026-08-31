@@ -1,0 +1,134 @@
+---
+/**
+ * Layout base globale dell'applicazione Brilla Cafe.
+ * Include Header, Footer, CartDrawer globale (Nanostores) e metadati SEO/JSON-LD.
+ */
+import '../styles/global.css';
+import Header from '../components/layout/Header.astro';
+import Footer from '../components/layout/Footer.astro';
+import CartDrawer from '../components/cart/CartDrawer';
+import CookieBanner from '../components/layout/CookieBanner';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  canonicalURL?: string;
+  type?: 'website' | 'article' | 'product';
+  schema?: Record<string, any>;
+}
+
+const {
+  title = 'Brilla Cafe — Cartoleria, Edicola e Gift a Castelnuovo Bocca d\'Adda',
+  description = 'Il negozio online di fiducia a Castelnuovo Bocca d\'Adda per cancelleria scolastica, quotidiani, riviste del mese e idee regalo. Ritiro rapido in negozio o spedizione tracciata.',
+  image = 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=1200&auto=format&fit=crop&q=80',
+  type = 'website',
+  schema,
+} = Astro.props;
+
+const siteUrl = 'https://brillacafe.it';
+const fullImageUrl = image.startsWith('http') ? image : `${siteUrl}${image}`;
+
+// Schema JSON-LD LocalBusiness per SEO Locale
+const localBusinessSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'LocalBusiness',
+  '@id': 'https://brillacafe.it/#localbusiness',
+  name: "Brilla Cafe'",
+  legalName: 'Brilla SAS di Bricchi Sara e c.',
+  image: 'https://brillacafe.it/images/logo.png',
+  telephone: '+393500206743',
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: 'Via Umberto I, 35',
+    addressLocality: "Castelnuovo Bocca d'Adda",
+    postalCode: '26843',
+    addressRegion: 'LO',
+    addressCountry: 'IT',
+  },
+  vatID: 'IT11824030966',
+  priceRange: '€',
+  description: "Bar, edicola, cartoleria e articoli regalo a Castelnuovo Bocca d'Adda. Ordini online con ritiro in negozio o spedizione rapida.",
+  url: 'https://brillacafe.it',
+  geo: {
+    '@type': 'GeoCoordinates',
+    latitude: 45.1167,
+    longitude: 9.8667,
+  },
+  openingHoursSpecification: [
+    {
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+      opens: '06:30',
+      closes: '19:30',
+    },
+    {
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: ['Sunday'],
+      opens: '07:00',
+      closes: '13:00',
+    },
+  ],
+};
+---
+
+<!DOCTYPE html>
+<html lang="it" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  {/* SEO Core */}
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <meta name="robots" content="index, follow" />
+  <meta name="keywords" content="Cartoleria Castelnuovo Bocca d'Adda, Edicola Lodi, Riviste online, Bar Brilla Cafe, Quaderni scuola, Idee regalo artigianali" />
+
+  {/* Open Graph / Facebook */}
+  <meta property="og:type" content={type} />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:image" content={fullImageUrl} />
+  <meta property="og:locale" content="it_IT" />
+
+  {/* Twitter */}
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content={fullImageUrl} />
+
+  {/* Favicon & Fonts */}
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  {/* JSON-LD LocalBusiness */}
+  <script type="application/ld+json" set:html={JSON.stringify(localBusinessSchema)} />
+  
+  {/* Extra Schema se fornito */}
+  {schema && (
+    <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+  )}
+</head>
+<body class="min-h-screen bg-brand-cream text-brand-dark flex flex-col antialiased">
+  
+  {/* Header di navigazione */}
+  <Header />
+
+  {/* Main content slot */}
+  <div class="flex-1">
+    <slot />
+  </div>
+
+  {/* Footer con info locali */}
+  <Footer />
+
+  {/* Drawer laterale carrello globale sincronizzato con Nanostores */}
+  <CartDrawer client:load />
+
+  {/* Banner informativo cookie tecnici */}
+  <CookieBanner client:load />
+
+</body>
+</html>

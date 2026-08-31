@@ -1,0 +1,114 @@
+---
+/**
+ * Sezione di presentazione dei 3 macro-reparti del negozio:
+ * 1. Cartoleria (Scuola & Ufficio)
+ * 2. Edicola (Riviste, Fumetti & Quotidiani)
+ * 3. Bar & Gift (Tazze, Souvenir & Gadget)
+ */
+---
+
+<section id="reparti" class="py-16 sm:py-24 bg-white">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    
+    <div class="text-center max-w-2xl mx-auto mb-16">
+      <span class="px-3.5 py-1 rounded-full bg-brand-dark/5 text-brand-dark text-xs font-bold uppercase tracking-wider inline-block mb-3">
+        I Nostri Reparti
+      </span>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-brand-dark tracking-tight">
+        Tutto quello che cerchi, in un unico posto.
+      </h2>
+      <p class="text-sm sm:text-base text-brand-dark/65 mt-3">
+        Scegli una sezione per esplorare gli articoli disponibili per il ritiro immediato o la spedizione a casa tua.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      
+      {/* 1. Cartoleria */}
+      <a
+        href="/catalogo?tipo=cartoleria"
+        class="group relative rounded-3xl p-8 bg-gradient-to-br from-blue-50/50 via-white to-blue-50/30 border border-blue-100 hover:border-badge-cartoleria/40 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden"
+      >
+        <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-badge-cartoleria/10 rounded-full blur-2xl group-hover:scale-150 transition-transform"></div>
+        
+        <div>
+          <div class="w-14 h-14 rounded-2xl bg-badge-cartoleria text-white flex items-center justify-center text-2xl shadow-md mb-6 group-hover:scale-110 transition-transform">
+            ✏️
+          </div>
+          <span class="text-xs font-bold text-badge-cartoleria uppercase tracking-wider block mb-1">
+            Scuola &amp; Ufficio
+          </span>
+          <h3 class="text-2xl font-bold text-brand-dark mb-3 group-hover:text-badge-cartoleria transition-colors">
+            Cartoleria
+          </h3>
+          <p class="text-xs sm:text-sm text-brand-dark/70 leading-relaxed mb-6">
+            Penne a sfera, quadernoni a righe e quadretti, zaini ergonomici, evidenziatori pastello, diari e articoli per disegno tecnico e artistico.
+          </p>
+        </div>
+
+        <div class="pt-4 border-t border-brand-dark/5 flex items-center justify-between text-xs font-bold text-badge-cartoleria">
+          <span>Sfoglia Cartoleria</span>
+          <span class="group-hover:translate-x-1 transition-transform">→</span>
+        </div>
+      </a>
+
+      {/* 2. Edicola */}
+      <a
+        href="/catalogo?tipo=edicola"
+        class="group relative rounded-3xl p-8 bg-gradient-to-br from-emerald-50/50 via-white to-emerald-50/30 border border-emerald-100 hover:border-badge-edicola/40 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden"
+      >
+        <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-badge-edicola/10 rounded-full blur-2xl group-hover:scale-150 transition-transform"></div>
+        
+        <div>
+          <div class="w-14 h-14 rounded-2xl bg-badge-edicola text-white flex items-center justify-center text-2xl shadow-md mb-6 group-hover:scale-110 transition-transform">
+            📰
+          </div>
+          <span class="text-xs font-bold text-badge-edicola uppercase tracking-wider block mb-1">
+            Novità &amp; Pubblicazioni
+          </span>
+          <h3 class="text-2xl font-bold text-brand-dark mb-3 group-hover:text-badge-edicola transition-colors">
+            Edicola del Mese
+          </h3>
+          <p class="text-xs sm:text-sm text-brand-dark/70 leading-relaxed mb-6">
+            Quotidiani nazionali, riviste di scienza e natura (National Geographic, Focus), fumetti storici e collezionabili, guide turistiche e riviste per ragazzi.
+          </p>
+        </div>
+
+        <div class="pt-4 border-t border-brand-dark/5 flex items-center justify-between text-xs font-bold text-badge-edicola">
+          <span>Scopri le Riviste</span>
+          <span class="group-hover:translate-x-1 transition-transform">→</span>
+        </div>
+      </a>
+
+      {/* 3. Bar & Gift */}
+      <a
+        href="/catalogo?tipo=bar_gift"
+        class="group relative rounded-3xl p-8 bg-gradient-to-br from-rose-50/50 via-white to-rose-50/30 border border-rose-100 hover:border-badge-gift/40 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden"
+      >
+        <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-badge-gift/10 rounded-full blur-2xl group-hover:scale-150 transition-transform"></div>
+        
+        <div>
+          <div class="w-14 h-14 rounded-2xl bg-badge-gift text-white flex items-center justify-center text-2xl shadow-md mb-6 group-hover:scale-110 transition-transform">
+            🎁
+          </div>
+          <span class="text-xs font-bold text-badge-gift uppercase tracking-wider block mb-1">
+            Souvenir &amp; Dolci
+          </span>
+          <h3 class="text-2xl font-bold text-brand-dark mb-3 group-hover:text-badge-gift transition-colors">
+            Bar, Caffè &amp; Gift
+          </h3>
+          <p class="text-xs sm:text-sm text-brand-dark/70 leading-relaxed mb-6">
+            Tazze mug esclusive "Brilla Castelnuovo", bottiglie termiche inox, scatole di cioccolatini piemontesi e gadget artigianali per un regalo speciale.
+          </p>
+        </div>
+
+        <div class="pt-4 border-t border-brand-dark/5 flex items-center justify-between text-xs font-bold text-badge-gift">
+          <span>Vedi Idee Regalo</span>
+          <span class="group-hover:translate-x-1 transition-transform">→</span>
+        </div>
+      </a>
+
+    </div>
+
+  </div>
+</section>

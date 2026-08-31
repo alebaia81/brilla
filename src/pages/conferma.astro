@@ -1,0 +1,14 @@
+---
+/**
+ * Pagina di Conferma Ordine Astro.
+ */
+import Layout from '../layouts/Layout.astro';
+import OrderConfirmation from '../components/checkout/OrderConfirmation';
+---
+
+<Layout
+  title="Ordine Confermato — Brilla Cafe"
+  description="Grazie per il tuo acquisto presso Brilla Cafe. Il tuo ordine è stato ricevuto con successo."
+>
+  <OrderConfirmation client:load />
+</Layout>

@@ -1,0 +1,15 @@
+---
+/**
+ * Pagina Checkout Astro.
+ * Integra il componente React CheckoutPage (client:load).
+ */
+import Layout from '../layouts/Layout.astro';
+import CheckoutPage from '../components/checkout/CheckoutPage';
+---
+
+<Layout
+  title="Checkout & Conferma Ordine — Brilla Cafe"
+  description="Concludi il tuo ordine con ritiro gratuito in negozio a Castelnuovo Bocca d'Adda o spedizione a domicilio con PayPal."
+>
+  <CheckoutPage client:load />
+</Layout>

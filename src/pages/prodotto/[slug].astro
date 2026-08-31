@@ -1,0 +1,62 @@
+---
+/**
+ * Dynamic Route SSG per la scheda singolo prodotto.
+ * Pre-genera le rotte dei prodotti noti a build time e idrata ProductDetail via client:load.
+ */
+import Layout from '../../layouts/Layout.astro';
+import ProductDetail from '../../components/prodotto/ProductDetail';
+import { supabase } from '../../lib/supabase';
+
+export async function getStaticPaths() {
+  const defaultSlugs = [
+    { params: { slug: 'set-10-penne-sfera-retrattili' } },
+    { params: { slug: 'quadernone-maxi-a4-righe-100g' } },
+    { params: { slug: 'evidenziatori-pastel-edition-6pz' } },
+    { params: { slug: 'zaino-scuola-viaggio-idrorepellente' } },
+    { params: { slug: 'national-geographic-italia-mese' } },
+    { params: { slug: 'la-gazzetta-dello-sport-mag' } },
+    { params: { slug: 'topolino-fumetto-da-collezione' } },
+    { params: { slug: 'tazza-mug-artigianale-brilla' } },
+    { params: { slug: 'confezione-cioccolatini-praline-250g' } },
+    { params: { slug: 'bottiglia-termica-inox-500ml-brilla' } },
+  ];
+
+  try {
+    const { data } = await supabase.from('prodotti').select('slug');
+    if (data && data.length > 0) {
+      return data.map((p) => ({ params: { slug: p.slug } }));
+    }
+  } catch (e) {
+    // fallback
+  }
+
+  return defaultSlugs;
+}
+
+const { slug } = Astro.params;
+
+// Schema JSON-LD Product per SEO
+const productSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: slug?.replace(/-/g, ' ').toUpperCase(),
+  offers: {
+    '@type': 'Offer',
+    priceCurrency: 'EUR',
+    availability: 'https://schema.org/InStock',
+    seller: {
+      '@type': 'LocalBusiness',
+      name: 'Brilla Cafe',
+    },
+  },
+};
+---
+
+<Layout
+  title={`${slug ? slug.replace(/-/g, ' ') : 'Prodotto'} — Brilla Cafe Shop`}
+  description="Dettagli prodotto, disponibilità e opzioni di ritiro in negozio a Castelnuovo Bocca d'Adda o spedizione a domicilio."
+  schema={productSchema}
+  type="product"
+>
+  <ProductDetail client:load slug={slug || ''} />
+</Layout>

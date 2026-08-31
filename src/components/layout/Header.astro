@@ -1,0 +1,57 @@
+---
+import CartIcon from './CartIcon';
+---
+
+<header class="sticky top-0 z-40 bg-brand-cream/80 backdrop-blur-md border-b border-brand-dark/10 transition-all">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-20">
+      
+      {/* Brand Logo */}
+      <a href="/" class="flex items-center gap-3 group focus:outline-none focus:ring-2 focus:ring-brand-amber rounded-lg p-1">
+        <div class="w-11 h-11 rounded-2xl bg-brand-amber text-white flex items-center justify-center font-bold text-xl shadow-md group-hover:scale-105 transition-transform">
+          ☕
+        </div>
+        <div>
+          <span class="text-xl sm:text-2xl font-black tracking-tight text-brand-dark flex items-center gap-1">
+            BRILLA <span class="text-brand-amber font-light">CAFE</span>
+          </span>
+          <span class="block text-[11px] font-medium uppercase tracking-widest text-brand-dark/60 -mt-1">
+            Cartoleria · Edicola · Gift
+          </span>
+        </div>
+      </a>
+
+      {/* Nav Desktop */}
+      <nav class="hidden md:flex items-center gap-8 text-sm font-semibold text-brand-dark/80">
+        <a href="/" class="hover:text-brand-amber transition-colors">Home</a>
+        <a href="/catalogo" class="hover:text-brand-amber transition-colors">Tutto il Catalogo</a>
+        <a href="/catalogo?tipo=cartoleria" class="hover:text-badge-cartoleria transition-colors flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-badge-cartoleria"></span>
+          Cartoleria
+        </a>
+        <a href="/catalogo?tipo=edicola" class="hover:text-badge-edicola transition-colors flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-badge-edicola"></span>
+          Edicola
+        </a>
+        <a href="/catalogo?tipo=bar_gift" class="hover:text-badge-gift transition-colors flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-badge-gift"></span>
+          Bar &amp; Gift
+        </a>
+      </nav>
+
+      {/* Actions (Cart & Quick CTA) */}
+      <div class="flex items-center gap-3">
+        <a
+          href="/catalogo"
+          class="hidden sm:inline-flex items-center justify-center px-4 py-2 text-xs font-semibold text-brand-dark border border-brand-dark/20 rounded-xl hover:bg-brand-dark hover:text-white transition-all"
+        >
+          Sfoglia Shop
+        </a>
+        
+        {/* Carrello React Isola Interattiva */}
+        <CartIcon client:load />
+      </div>
+
+    </div>
+  </div>
+</header>

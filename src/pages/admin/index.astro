@@ -1,0 +1,15 @@
+---
+/**
+ * Area Riservata Admin Astro.
+ * Dashboard protetta con gestione ordini, prodotti e categorie.
+ */
+import Layout from '../../layouts/Layout.astro';
+import AdminLayout from '../../components/admin/AdminLayout';
+---
+
+<Layout
+  title="Pannello Amministrazione — Brilla Cafe"
+  description="Area riservata per la gestione degli ordini e del catalogo prodotti di Brilla Cafe."
+>
+  <AdminLayout client:load initialTab="ordini" />
+</Layout>
