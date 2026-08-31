@@ -114,7 +114,7 @@ export default function AdminLayout({ initialTab = 'ordini' }: AdminLayoutProps)
           }`}
         >
           <Tags className="w-4 h-4" />
-          <span>Categorie Reparti</span>
+          <span>Categorie Prodotti</span>
         </button>
       </div>
 

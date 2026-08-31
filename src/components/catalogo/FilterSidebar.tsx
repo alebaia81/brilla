@@ -85,7 +85,7 @@ export default function FilterSidebar({
         </label>
         <div className="flex flex-col gap-1.5">
           {[
-            { id: 'all', label: 'Tutti i Reparti', color: 'bg-brand-dark' },
+            { id: 'all', label: 'Tutte le Categorie', color: 'bg-brand-dark' },
             { id: 'cartoleria', label: 'Cartoleria & Scuola', color: 'bg-badge-cartoleria' },
             { id: 'edicola', label: 'Edicola & Riviste', color: 'bg-badge-edicola' },
             { id: 'bar_gift', label: 'Bar, Caffè & Gift', color: 'bg-badge-gift' },

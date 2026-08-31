@@ -105,9 +105,9 @@ export default function CategoryManager() {
       
       <div className="flex items-center justify-between bg-white p-6 rounded-3xl border border-brand-dark/10 shadow-sm">
         <div>
-          <h2 className="text-xl font-extrabold text-brand-dark">Gestione Categorie &amp; Reparti</h2>
+          <h2 className="text-xl font-extrabold text-brand-dark">Gestione Categorie Prodotti</h2>
           <p className="text-xs text-brand-dark/60 mt-0.5">
-            Organizza i reparti merceologici per la catalogazione.
+            Organizza le categorie merceologiche per la catalogazione.
           </p>
         </div>
 
