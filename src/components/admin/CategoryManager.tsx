@@ -172,7 +172,7 @@ export default function CategoryManager() {
               >
                 <option value="cartoleria">Cartoleria</option>
                 <option value="edicola">Edicola</option>
-                <option value="bar_gift">Bar &amp; Gift</option>
+                <option value="bar_gift">Bar &amp; Idee Regalo</option>
               </select>
             </div>
           </div>

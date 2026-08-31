@@ -88,7 +88,7 @@ export default function FilterSidebar({
             { id: 'all', label: 'Tutte le Categorie', color: 'bg-brand-dark' },
             { id: 'cartoleria', label: 'Cartoleria & Scuola', color: 'bg-badge-cartoleria' },
             { id: 'edicola', label: 'Edicola & Riviste', color: 'bg-badge-edicola' },
-            { id: 'bar_gift', label: 'Bar, Caffè & Gift', color: 'bg-badge-gift' },
+            { id: 'bar_gift', label: 'Bar, Caffè & Idee Regalo', color: 'bg-badge-gift' },
           ].map((cat) => {
             const isSelected = selectedTipo === cat.id;
             return (

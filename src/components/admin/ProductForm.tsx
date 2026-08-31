@@ -144,7 +144,7 @@ export default function ProductForm({ initialProduct, onSave, onCancel }: Produc
           >
             <option value="cartoleria">Cartoleria &amp; Scuola</option>
             <option value="edicola">Edicola &amp; Riviste</option>
-            <option value="bar_gift">Bar, Caffè &amp; Gift</option>
+            <option value="bar_gift">Bar, Caffè &amp; Idee Regalo</option>
           </select>
         </div>
 

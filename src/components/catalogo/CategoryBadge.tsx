@@ -23,7 +23,7 @@ export default function CategoryBadge({ tipo, className = '' }: CategoryBadgePro
       break;
     case 'bar_gift':
     case 'bar-gift':
-      label = 'Bar & Gift';
+      label = 'Bar & Idee Regalo';
       colorClasses = 'bg-rose-100/80 text-rose-800 border-rose-200';
       icon = '🎁';
       break;
