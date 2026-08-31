@@ -7,25 +7,25 @@ interface CategoryBadgeProps {
 
 export default function CategoryBadge({ tipo, className = '' }: CategoryBadgeProps) {
   let label = 'Articolo';
-  let colorClasses = 'bg-brand-dark/10 text-brand-dark';
-  let icon = '📦';
+  let colorClasses = 'bg-brand-dark/10 text-brand-dark border-brand-dark/20';
+  let dotColor = 'bg-brand-dark';
 
   switch (tipo?.toLowerCase()) {
     case 'cartoleria':
-      label = 'Cartoleria';
-      colorClasses = 'bg-blue-100/80 text-blue-800 border-blue-200';
-      icon = '✏️';
+      label = 'Cartoleria & Scuola';
+      colorClasses = 'bg-blue-50 text-blue-800 border-blue-200/80';
+      dotColor = 'bg-badge-cartoleria';
       break;
     case 'edicola':
-      label = 'Edicola';
-      colorClasses = 'bg-emerald-100/80 text-emerald-800 border-emerald-200';
-      icon = '📰';
+      label = 'Edicola & Riviste';
+      colorClasses = 'bg-emerald-50 text-emerald-800 border-emerald-200/80';
+      dotColor = 'bg-badge-edicola';
       break;
     case 'bar_gift':
     case 'bar-gift':
       label = 'Bar & Idee Regalo';
-      colorClasses = 'bg-rose-100/80 text-rose-800 border-rose-200';
-      icon = '🎁';
+      colorClasses = 'bg-rose-50 text-rose-800 border-rose-200/80';
+      dotColor = 'bg-badge-gift';
       break;
   }
 
@@ -33,7 +33,7 @@ export default function CategoryBadge({ tipo, className = '' }: CategoryBadgePro
     <span
       className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border shadow-2xs ${colorClasses} ${className}`}
     >
-      <span>{icon}</span>
+      <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`}></span>
       <span>{label}</span>
     </span>
   );

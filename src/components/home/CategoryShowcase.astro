@@ -1,110 +1,147 @@
 ---
 /**
- * Sezione di presentazione dei 3 macro-reparti del negozio:
- * 1. Cartoleria (Scuola & Ufficio)
- * 2. Edicola (Riviste, Fumetti & Quotidiani)
- * 3. Bar & Gift (Tazze, Souvenir & Gadget)
+ * Sezione di presentazione visiva e immersiva delle 3 categorie principali di Brilla Cafe:
+ * 1. Cartoleria & Scuola (cartoleria.jpg)
+ * 2. Edicola del Mese (edicola.jpg)
+ * 3. Bar, Caffè & Idee Regalo (bar.jpg)
+ * Design editoriale e professionale senza emoji infantili, con fotografie reali del negozio.
  */
 ---
 
-<section id="categorie" class="py-16 sm:py-24 bg-white">
+<section id="categorie" class="py-16 sm:py-24 bg-white border-t border-brand-dark/10">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     
-    <div class="text-center max-w-2xl mx-auto mb-16">
+    <div class="text-center max-w-2xl mx-auto mb-14">
       <span class="px-3.5 py-1 rounded-full bg-brand-dark/5 text-brand-dark text-xs font-bold uppercase tracking-wider inline-block mb-3">
         Le Nostre Categorie
       </span>
       <h2 class="text-3xl sm:text-4xl font-extrabold text-brand-dark tracking-tight">
         Tutto quello che cerchi, in un unico posto.
       </h2>
-      <p class="text-sm sm:text-base text-brand-dark/65 mt-3">
-        Scegli una sezione per esplorare gli articoli disponibili per il ritiro immediato o la spedizione a casa tua.
+      <p class="text-sm sm:text-base text-brand-dark/65 mt-3 leading-relaxed">
+        Sfoglia i nostri reparti specializzati per trovare subito ciò di cui hai bisogno: ritira comodamente in negozio o richiedi la spedizione.
       </p>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
       
-      {/* 1. Cartoleria */}
+      {/* 1. Cartoleria & Scuola */}
       <a
         href="/catalogo?tipo=cartoleria"
-        class="group relative rounded-3xl p-8 bg-gradient-to-br from-blue-50/50 via-white to-blue-50/30 border border-blue-100 hover:border-badge-cartoleria/40 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden"
+        class="group relative rounded-3xl bg-white border border-brand-dark/10 hover:border-badge-cartoleria/40 shadow-sm hover:shadow-2xl transition-all duration-500 flex flex-col overflow-hidden"
       >
-        <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-badge-cartoleria/10 rounded-full blur-2xl group-hover:scale-150 transition-transform"></div>
-        
-        <div>
-          <div class="w-14 h-14 rounded-2xl bg-badge-cartoleria text-white flex items-center justify-center text-2xl shadow-md mb-6 group-hover:scale-110 transition-transform">
-            ✏️
+        {/* Immagine Reale con Overlay Elegante */}
+        <div class="relative aspect-[4/3] bg-brand-cream overflow-hidden">
+          <img
+            src="/cartoleria.jpg"
+            alt="Reparto Cartoleria e Scuola Brilla Cafe"
+            class="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
+            loading="lazy"
+          />
+          <div class="absolute inset-0 bg-gradient-to-t from-brand-dark/80 via-brand-dark/20 to-transparent"></div>
+          
+          <div class="absolute top-4 left-4">
+            <span class="px-3 py-1 rounded-full bg-badge-cartoleria text-white text-[11px] font-bold tracking-wide shadow-md">
+              Scuola &amp; Ufficio
+            </span>
           </div>
-          <span class="text-xs font-bold text-badge-cartoleria uppercase tracking-wider block mb-1">
-            Scuola &amp; Ufficio
-          </span>
-          <h3 class="text-2xl font-bold text-brand-dark mb-3 group-hover:text-badge-cartoleria transition-colors">
-            Cartoleria
-          </h3>
-          <p class="text-xs sm:text-sm text-brand-dark/70 leading-relaxed mb-6">
-            Penne a sfera, quadernoni a righe e quadretti, zaini ergonomici, evidenziatori pastello, diari e articoli per disegno tecnico e artistico.
-          </p>
+
+          <div class="absolute bottom-4 left-4 right-4 text-white">
+            <span class="text-[10px] font-bold uppercase tracking-widest text-white/80 block">Reparto 01</span>
+            <h3 class="text-2xl font-black tracking-tight">Cartoleria</h3>
+          </div>
         </div>
 
-        <div class="pt-4 border-t border-brand-dark/5 flex items-center justify-between text-xs font-bold text-badge-cartoleria">
-          <span>Sfoglia Cartoleria</span>
-          <span class="group-hover:translate-x-1 transition-transform">→</span>
+        {/* Descrizione & CTA */}
+        <div class="p-6 flex-1 flex flex-col justify-between space-y-4 bg-gradient-to-b from-white to-blue-50/20">
+          <p class="text-xs sm:text-sm text-brand-dark/75 leading-relaxed">
+            Quadernoni, penne, zaini ergonomici, evidenziatori, diari e tutto il materiale completo per lo studio e l'ufficio.
+          </p>
+
+          <div class="pt-3 border-t border-brand-dark/5 flex items-center justify-between text-xs font-bold text-badge-cartoleria group-hover:translate-x-0.5 transition-all">
+            <span>Sfoglia Cartoleria</span>
+            <span class="group-hover:translate-x-1.5 transition-transform text-base">→</span>
+          </div>
         </div>
       </a>
 
-      {/* 2. Edicola */}
+      {/* 2. Edicola & Riviste */}
       <a
         href="/catalogo?tipo=edicola"
-        class="group relative rounded-3xl p-8 bg-gradient-to-br from-emerald-50/50 via-white to-emerald-50/30 border border-emerald-100 hover:border-badge-edicola/40 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden"
+        class="group relative rounded-3xl bg-white border border-brand-dark/10 hover:border-badge-edicola/40 shadow-sm hover:shadow-2xl transition-all duration-500 flex flex-col overflow-hidden"
       >
-        <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-badge-edicola/10 rounded-full blur-2xl group-hover:scale-150 transition-transform"></div>
-        
-        <div>
-          <div class="w-14 h-14 rounded-2xl bg-badge-edicola text-white flex items-center justify-center text-2xl shadow-md mb-6 group-hover:scale-110 transition-transform">
-            📰
+        {/* Immagine Reale con Overlay Elegante */}
+        <div class="relative aspect-[4/3] bg-brand-cream overflow-hidden">
+          <img
+            src="/edicola.jpg"
+            alt="Reparto Edicola e Riviste Brilla Cafe"
+            class="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
+            loading="lazy"
+          />
+          <div class="absolute inset-0 bg-gradient-to-t from-brand-dark/80 via-brand-dark/20 to-transparent"></div>
+          
+          <div class="absolute top-4 left-4">
+            <span class="px-3 py-1 rounded-full bg-badge-edicola text-white text-[11px] font-bold tracking-wide shadow-md">
+              Edicola del Mese
+            </span>
           </div>
-          <span class="text-xs font-bold text-badge-edicola uppercase tracking-wider block mb-1">
-            Novità &amp; Pubblicazioni
-          </span>
-          <h3 class="text-2xl font-bold text-brand-dark mb-3 group-hover:text-badge-edicola transition-colors">
-            Edicola del Mese
-          </h3>
-          <p class="text-xs sm:text-sm text-brand-dark/70 leading-relaxed mb-6">
-            Quotidiani nazionali, riviste di scienza e natura (National Geographic, Focus), fumetti storici e collezionabili, guide turistiche e riviste per ragazzi.
-          </p>
+
+          <div class="absolute bottom-4 left-4 right-4 text-white">
+            <span class="text-[10px] font-bold uppercase tracking-widest text-white/80 block">Reparto 02</span>
+            <h3 class="text-2xl font-black tracking-tight">Edicola &amp; Quotidiani</h3>
+          </div>
         </div>
 
-        <div class="pt-4 border-t border-brand-dark/5 flex items-center justify-between text-xs font-bold text-badge-edicola">
-          <span>Scopri le Riviste</span>
-          <span class="group-hover:translate-x-1 transition-transform">→</span>
+        {/* Descrizione & CTA */}
+        <div class="p-6 flex-1 flex flex-col justify-between space-y-4 bg-gradient-to-b from-white to-emerald-50/20">
+          <p class="text-xs sm:text-sm text-brand-dark/75 leading-relaxed">
+            Quotidiani nazionali del giorno, riviste di approfondimento, fumetti storici, novità da collezione e guide.
+          </p>
+
+          <div class="pt-3 border-t border-brand-dark/5 flex items-center justify-between text-xs font-bold text-badge-edicola group-hover:translate-x-0.5 transition-all">
+            <span>Scopri le Pubblicazioni</span>
+            <span class="group-hover:translate-x-1.5 transition-transform text-base">→</span>
+          </div>
         </div>
       </a>
 
-      {/* 3. Bar & Idee Regalo */}
+      {/* 3. Bar, Caffè & Idee Regalo */}
       <a
         href="/catalogo?tipo=bar_gift"
-        class="group relative rounded-3xl p-8 bg-gradient-to-br from-rose-50/50 via-white to-rose-50/30 border border-rose-100 hover:border-badge-gift/40 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden"
+        class="group relative rounded-3xl bg-white border border-brand-dark/10 hover:border-badge-gift/40 shadow-sm hover:shadow-2xl transition-all duration-500 flex flex-col overflow-hidden"
       >
-        <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-badge-gift/10 rounded-full blur-2xl group-hover:scale-150 transition-transform"></div>
-        
-        <div>
-          <div class="w-14 h-14 rounded-2xl bg-badge-gift text-white flex items-center justify-center text-2xl shadow-md mb-6 group-hover:scale-110 transition-transform">
-            🎁
+        {/* Immagine Reale con Overlay Elegante */}
+        <div class="relative aspect-[4/3] bg-brand-cream overflow-hidden">
+          <img
+            src="/bar.jpg"
+            alt="Bar, Caffè e Idee Regalo Brilla Cafe"
+            class="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
+            loading="lazy"
+          />
+          <div class="absolute inset-0 bg-gradient-to-t from-brand-dark/80 via-brand-dark/20 to-transparent"></div>
+          
+          <div class="absolute top-4 left-4">
+            <span class="px-3 py-1 rounded-full bg-badge-gift text-white text-[11px] font-bold tracking-wide shadow-md">
+              Bar &amp; Idee Regalo
+            </span>
           </div>
-          <span class="text-xs font-bold text-badge-gift uppercase tracking-wider block mb-1">
-            Reparto 03
-          </span>
-          <h3 class="text-2xl font-bold text-brand-dark mb-3 group-hover:text-badge-gift transition-colors">
-            Bar, Caffè &amp; Idee Regalo
-          </h3>
-          <p class="text-sm text-brand-dark/70 leading-relaxed mb-6">
-            Tazze e mug souvenir di Castelnuovo Bocca d’Adda, bottiglie termiche, praline e cioccolateria artigianale.
-          </p>
+
+          <div class="absolute bottom-4 left-4 right-4 text-white">
+            <span class="text-[10px] font-bold uppercase tracking-widest text-white/80 block">Reparto 03</span>
+            <h3 class="text-2xl font-black tracking-tight">Bar &amp; Idee Regalo</h3>
+          </div>
         </div>
 
-        <div class="pt-4 border-t border-brand-dark/5 flex items-center justify-between text-xs font-bold text-badge-gift">
-          <span>Vedi Idee Regalo</span>
-          <span class="group-hover:translate-x-1 transition-transform">→</span>
+        {/* Descrizione & CTA */}
+        <div class="p-6 flex-1 flex flex-col justify-between space-y-4 bg-gradient-to-b from-white to-rose-50/20">
+          <p class="text-xs sm:text-sm text-brand-dark/75 leading-relaxed">
+            Tazze e mug souvenir "Brilla Castelnuovo", bottiglie termiche inox, scatole di cioccolateria artigianale e pensieri speciali.
+          </p>
+
+          <div class="pt-3 border-t border-brand-dark/5 flex items-center justify-between text-xs font-bold text-badge-gift group-hover:translate-x-0.5 transition-all">
+            <span>Vedi Idee Regalo</span>
+            <span class="group-hover:translate-x-1.5 transition-transform text-base">→</span>
+          </div>
         </div>
       </a>
 
