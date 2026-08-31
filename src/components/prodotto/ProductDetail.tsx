@@ -85,7 +85,7 @@ const ALL_FALLBACK_PRODUCTS: Record<string, Product> = {
     prezzo: 5.90,
     sconto_percentuale: 0,
     prezzo_scontato: 5.90,
-    immagine_url: 'https://images.unsplash.com/photo-1532012164546-f432f2e3edd4?w=800&auto=format&fit=crop&q=80',
+    immagine_url: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800&auto=format&fit=crop&q=80',
     disponibile: true,
     in_evidenza: true,
     in_edicola_questo_mese: true,
@@ -246,7 +246,7 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
     ? product.prezzo_scontato 
     : product.prezzo;
 
-  const hasDiscount = product.sconto_percentuale && product.sconto_percentuale > 0;
+  const hasDiscount = Boolean(product.sconto_percentuale && product.sconto_percentuale > 0);
 
   const handleAddToCart = () => {
     addToCart({
@@ -310,7 +310,7 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
             
             <div className="absolute top-4 left-4 flex flex-col gap-2">
               <CategoryBadge tipo={product.tipo_prodotto} className="text-xs py-1 px-3" />
-              {hasDiscount && (
+              {Boolean(hasDiscount) && (
                 <span className="px-2.5 py-1 rounded-full text-xs font-bold text-white bg-rose-600 shadow-sm self-start">
                   Sconto del {product.sconto_percentuale}%
                 </span>

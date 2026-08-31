@@ -32,7 +32,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     ? product.prezzo_scontato 
     : product.prezzo;
 
-  const hasDiscount = product.sconto_percentuale && product.sconto_percentuale > 0;
+  const hasDiscount = Boolean(product.sconto_percentuale && product.sconto_percentuale > 0);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
