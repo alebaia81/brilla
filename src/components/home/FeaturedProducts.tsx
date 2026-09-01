@@ -40,7 +40,7 @@ const FALLBACK_FEATURED: Product[] = [
     prezzo: 5.90,
     sconto_percentuale: 0,
     prezzo_scontato: 5.90,
-    immagine_url: 'https://images.unsplash.com/photo-1532012164546-f432f2e3edd4?w=600&auto=format&fit=crop&q=80',
+    immagine_url: 'https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=600&auto=format&fit=crop&q=80',
     disponibile: true,
     in_evidenza: true,
     in_edicola_questo_mese: true,

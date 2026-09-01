@@ -12,49 +12,71 @@ export interface CartItem {
   tipo_prodotto?: string;
 }
 
-const STORAGE_KEY = 'brilla_cart_v1';
+// 1. Chiave unificata LocalStorage
+export const CART_STORAGE_KEY = 'brilla_cafe_cart_v1';
 
-// Inizializza dallo storage locale in modo sicuro per SSR
-function getInitialCart(): CartItem[] {
+// Legge in sicurezza localStorage nel browser (con migrazione automatica da vecchia chiave se presente)
+export function readLocalStorage(): CartItem[] {
   if (typeof window === 'undefined') return [];
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
+    const raw = localStorage.getItem(CART_STORAGE_KEY) || localStorage.getItem('brilla_cart_v1');
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
   } catch (err) {
     console.error('Errore nel recupero del carrello da localStorage:', err);
     return [];
   }
 }
 
-// Atom principale per il carrello
-export const $cart = atom<CartItem[]>(getInitialCart());
+// Atom principale del carrello
+export const $cartStore = atom<CartItem[]>(readLocalStorage());
+export const $cart = $cartStore;
 
-// Atom per il controllo visivo del Drawer laterale
+// Atom per il Drawer laterale
 export const $isCartOpen = atom<boolean>(false);
 
-// Salva le modifiche su localStorage ogni volta che l'atom cambia nel browser
+// Sincronizzazione persistente con LocalStorage
 if (typeof window !== 'undefined') {
-  $cart.subscribe((items) => {
+  // Assicura che l'atom contenga subito i dati del browser all'avvio
+  const saved = readLocalStorage();
+  if (saved.length > 0 && $cartStore.get().length === 0) {
+    $cartStore.set(saved);
+  }
+
+  // Ogni volta che $cartStore cambia, aggiorna localStorage
+  $cartStore.listen((items) => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+      if (!items || items.length === 0) {
+        localStorage.removeItem(CART_STORAGE_KEY);
+        localStorage.removeItem('brilla_cart_v1');
+      } else {
+        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+      }
     } catch (err) {
-      console.error('Errore nel salvataggio del carrello:', err);
+      console.error('Errore nel salvataggio su localStorage:', err);
     }
+  });
+
+  // Log di debug come richiesto
+  console.log('[DEBUG CART]', {
+    store: $cartStore.get(),
+    local: localStorage.getItem(CART_STORAGE_KEY) || localStorage.getItem('brilla_cart_v1'),
   });
 }
 
 // Computed: conteggio totale articoli
-export const $totalQuantity = computed($cart, (items) => {
-  return items.reduce((sum, item) => sum + item.quantita, 0);
+export const $totalQuantity = computed($cartStore, (items) => {
+  return items.reduce((sum, item) => sum + (Number(item.quantita) || 1), 0);
 });
 
 // Computed: subtotale articoli
-export const $totalPrice = computed($cart, (items) => {
+export const $totalPrice = computed($cartStore, (items) => {
   return items.reduce((sum, item) => {
     const activePrice = item.prezzo_scontato && item.prezzo_scontato > 0 
-      ? item.prezzo_scontato 
-      : item.prezzo;
-    return sum + activePrice * item.quantita;
+      ? Number(item.prezzo_scontato) 
+      : (Number(item.prezzo) || 0);
+    return sum + activePrice * (Number(item.quantita) || 1);
   }, 0);
 });
 
@@ -72,7 +94,7 @@ export function toggleCart() {
 }
 
 export function addToCart(product: Omit<CartItem, 'quantita'>, quantitaToAdd: number = 1) {
-  const current = $cart.get();
+  const current = $cartStore.get();
   const existingIndex = current.findIndex((item) => item.id === product.id);
 
   if (existingIndex > -1) {
@@ -81,9 +103,9 @@ export function addToCart(product: Omit<CartItem, 'quantita'>, quantitaToAdd: nu
       ...updated[existingIndex],
       quantita: updated[existingIndex].quantita + quantitaToAdd,
     };
-    $cart.set(updated);
+    $cartStore.set(updated);
   } else {
-    $cart.set([
+    $cartStore.set([
       ...current,
       {
         ...product,
@@ -95,7 +117,7 @@ export function addToCart(product: Omit<CartItem, 'quantita'>, quantitaToAdd: nu
 }
 
 export function updateItemQuantity(id: number, delta: number) {
-  const current = $cart.get();
+  const current = $cartStore.get();
   const target = current.find((item) => item.id === id);
   if (!target) return;
 
@@ -103,7 +125,7 @@ export function updateItemQuantity(id: number, delta: number) {
   if (newQty <= 0) {
     removeFromCart(id);
   } else {
-    $cart.set(
+    $cartStore.set(
       current.map((item) =>
         item.id === id ? { ...item, quantita: newQty } : item
       )
@@ -116,8 +138,8 @@ export function setItemQuantity(id: number, quantita: number) {
     removeFromCart(id);
     return;
   }
-  const current = $cart.get();
-  $cart.set(
+  const current = $cartStore.get();
+  $cartStore.set(
     current.map((item) =>
       item.id === id ? { ...item, quantita } : item
     )
@@ -125,10 +147,11 @@ export function setItemQuantity(id: number, quantita: number) {
 }
 
 export function removeFromCart(id: number) {
-  const current = $cart.get();
-  $cart.set(current.filter((item) => item.id !== id));
+  const current = $cartStore.get();
+  const nextCart = current.filter((item) => item.id !== id);
+  $cartStore.set(nextCart);
 }
 
 export function clearCart() {
-  $cart.set([]);
+  $cartStore.set([]);
 }

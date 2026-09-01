@@ -16,10 +16,13 @@ export default function OrdersTable() {
     try {
       const { data, error } = await supabase
         .from('ordini')
-        .select('*')
+        .select('*, ordine_articoli(*)')
         .order('created_at', { ascending: false });
 
-      if (!error && data) {
+      if (error) {
+        console.error('[ADMIN ORDERS FETCH ERROR]:', error);
+      } else if (data) {
+        console.log('[ADMIN ORDERS FETCH SUCCESS]:', data.length, 'ordini caricati');
         setOrders(data as Order[]);
       }
     } catch (err) {

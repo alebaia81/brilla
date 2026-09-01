@@ -1,17 +1,19 @@
 import React from 'react';
 import { useStore } from '@nanostores/react';
 import { ShoppingBag } from 'lucide-react';
-import { $totalQuantity, openCart } from '../../lib/cart-store';
+import { $cartStore, openCart } from '../../lib/cart-store';
 
 export default function CartIcon() {
-  const totalQuantity = useStore($totalQuantity);
+  const cart = useStore($cartStore);
+  const items = Array.isArray(cart) ? cart : [];
+  const totalQuantity = items.reduce((acc, i) => acc + (Number(i.quantita) || 1), 0);
 
   return (
     <button
       type="button"
       onClick={openCart}
       aria-label={`Visualizza carrello, ${totalQuantity} articoli presenti`}
-      className="relative p-2.5 rounded-full text-brand-dark hover:text-brand-amber hover:bg-brand-dark/5 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-amber"
+      className="relative p-2.5 rounded-full text-brand-dark hover:text-brand-amber hover:bg-brand-dark/5 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-amber cursor-pointer"
     >
       <ShoppingBag className="w-6 h-6 stroke-[1.8]" />
       {totalQuantity > 0 && (

@@ -92,7 +92,7 @@ export default function ProductManager() {
           <button
             type="button"
             onClick={() => setIsCreating(true)}
-            className="px-5 py-2.5 bg-brand-amber hover:bg-brand-amber/90 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center gap-2"
+            className="px-5 py-2.5 bg-brand-cyan hover:bg-brand-cyan/90 text-white text-xs font-bold rounded-xl shadow-md shadow-brand-cyan/20 transition-all flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
             <span>Aggiungi Prodotto</span>
@@ -107,7 +107,7 @@ export default function ProductManager() {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="Cerca per nome, marca o reparto..."
-          className="w-full pl-10 pr-4 py-3 bg-white border border-brand-dark/10 rounded-2xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-amber shadow-2xs"
+          className="w-full pl-10 pr-4 py-3 bg-white border border-brand-dark/10 rounded-2xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-cyan shadow-2xs"
         />
         <Search className="w-4 h-4 text-brand-dark/40 absolute left-3.5 top-3.5" />
       </div>

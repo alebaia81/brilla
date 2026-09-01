@@ -1,70 +1,48 @@
 import React, { useState } from 'react';
 import { useStore } from '@nanostores/react';
-import { $cart, $totalPrice, $totalQuantity, clearCart } from '../../lib/cart-store';
-import { formatPrice } from '../../lib/format';
+import { $cartStore, clearCart, type CartItem } from '../../lib/cart-store';
 import { supabase } from '../../lib/supabase';
-import ShippingForm, { type ShippingFormData } from './ShippingForm';
-import PickupForm, { type PickupFormData } from './PickupForm';
-import PayPalButton from './PayPalButton';
-import { Store, Truck, ShieldCheck, ArrowLeft, Loader2, CheckCircle2 } from 'lucide-react';
 
-const SHIPPING_COST = 5.90;
-
-export default function CheckoutPage() {
-  const cart = useStore($cart);
-  const subtotal = useStore($totalPrice);
-  const totalQty = useStore($totalQuantity);
-
-  // Modalità d'ordine: 'ritiro' (default) o 'spedizione'
-  const [tipoOrdine, setTipoOrdine] = useState<'ritiro' | 'spedizione'>('ritiro');
-
-  // Dati cliente
+export const CheckoutPage = () => {
+  const cart = useStore($cartStore);
+  const [orderType, setOrderType] = useState<'ritiro' | 'spedizione'>('ritiro');
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [telefono, setTelefono] = useState('');
-
-  // Dati spedizione
-  const [shippingData, setShippingData] = useState<ShippingFormData>({
-    indirizzo: '',
-    citta: 'Castelnuovo Bocca d\'Adda',
-    cap: '26843',
-    noteSpedizione: '',
-  });
-
-  // Dati ritiro
-  const [pickupData, setPickupData] = useState<PickupFormData>({
-    fasciaRitiro: '10:00 – 12:30 (Metà mattinata)',
-    dataRitiro: new Date().toISOString().split('T')[0],
-    noteRitiro: '',
-  });
-
-  // Stato invio
+  const [indirizzo, setIndirizzo] = useState('');
+  const [citta, setCitta] = useState('Castelnuovo Bocca d\'Adda');
+  const [cap, setCap] = useState('26843');
+  const [fascia, setFascia] = useState('10:00 - 12:30 (Metà Mattinata)');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const finalTotal = tipoOrdine === 'spedizione' ? subtotal + SHIPPING_COST : subtotal;
+  // Risolve gli articoli dello store in modo sicuro
+  const items: CartItem[] = Array.isArray(cart) ? cart : ((cart as any)?.items || []);
 
-  // Validazione di base dei campi obbligatori
-  const isCustomerValid = Boolean(nome.trim() && email.trim() && telefono.trim());
-  const isShippingValid = tipoOrdine === 'ritiro' || Boolean(
-    shippingData.indirizzo.trim() && shippingData.citta.trim() && shippingData.cap.trim()
-  );
+  const totalQty = items.reduce((sum, item) => sum + (Number(item.quantita) || 1), 0);
+  const subtotal = items.reduce((sum, item) => {
+    const activePrice = item.prezzo_scontato && item.prezzo_scontato > 0 
+      ? Number(item.prezzo_scontato) 
+      : (Number(item.prezzo) || 0);
+    return sum + activePrice * (Number(item.quantita) || 1);
+  }, 0);
 
-  // Generatore numero ordine univoco (es. ORD-20260831-ABCD)
-  const generateOrderNumber = () => {
-    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
-    return `ORD-${dateStr}-${randomSuffix}`;
-  };
+  const shippingCost = orderType === 'spedizione' ? 5.90 : 0;
+  const finalTotal = subtotal + shippingCost;
 
-  // Salvataggio Ordine su Supabase
-  const submitOrder = async (paypalOrderId?: string) => {
-    if (!isCustomerValid || !isShippingValid) {
-      setErrorMsg('Per favore compila tutti i campi obbligatori contrassegnati con *');
+  // 1. Invio e salvataggio reale dell'ordine su Supabase
+  const handleConfirmOrder = async () => {
+    if (!nome.trim() || !telefono.trim()) {
+      setErrorMsg('Per favore compila tutti i campi obbligatori (Nome e Telefono).');
       return;
     }
 
-    if (cart.length === 0) {
+    if (orderType === 'spedizione' && !indirizzo.trim()) {
+      setErrorMsg('Per favore inserisci l\'indirizzo completo di spedizione.');
+      return;
+    }
+
+    if (items.length === 0) {
       setErrorMsg('Il tuo carrello è vuoto.');
       return;
     }
@@ -72,384 +50,278 @@ export default function CheckoutPage() {
     setIsSubmitting(true);
     setErrorMsg(null);
 
-    const orderNumber = generateOrderNumber();
+    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const orderNumber = `ORD-${dateStr}-${randomSuffix}`;
 
     try {
-      // 1. Inserisci Ordine Principale
+      // 1.1 Inserimento Ordine Principale
+      const orderPayload = {
+        numero_ordine: orderNumber,
+        cliente_nome: nome.trim(),
+        cliente_email: (email && email.trim()) ? email.trim() : `${telefono.replace(/\s+/g, '')}@cliente.brillacafe.it`,
+        cliente_telefono: telefono.trim(),
+        tipo_ordine: orderType,
+        stato: 'in_sospeso',
+        fascia_ritiro: orderType === 'ritiro' ? fascia : null,
+        indirizzo_spedizione: orderType === 'spedizione' ? indirizzo.trim() : null,
+        citta_spedizione: orderType === 'spedizione' ? citta.trim() : null,
+        cap_spedizione: orderType === 'spedizione' ? cap.trim() : null,
+        costo_spedizione: shippingCost,
+        totale_articoli: subtotal,
+        totale_ordine: finalTotal,
+        note_cliente: orderType === 'spedizione' ? `Spedizione: ${indirizzo.trim()}, ${citta.trim()} ${cap.trim()}` : `Ritiro: ${fascia}`,
+      };
+
+      console.log('[ORDINE PAYLOAD]', orderPayload);
+
       const { data: orderData, error: orderError } = await supabase
         .from('ordini')
-        .insert({
-          numero_ordine: orderNumber,
-          cliente_nome: nome,
-          cliente_email: email,
-          cliente_telefono: telefono,
-          tipo_ordine: tipoOrdine,
-          stato: tipoOrdine === 'spedizione' ? 'pagato' : 'in_sospeso',
-          data_ritiro_prevista: tipoOrdine === 'ritiro' ? pickupData.dataRitiro : null,
-          fascia_ritiro: tipoOrdine === 'ritiro' ? pickupData.fasciaRitiro : null,
-          indirizzo_spedizione: tipoOrdine === 'spedizione' ? shippingData.indirizzo : null,
-          citta_spedizione: tipoOrdine === 'spedizione' ? shippingData.citta : null,
-          cap_spedizione: tipoOrdine === 'spedizione' ? shippingData.cap : null,
-          costo_spedizione: tipoOrdine === 'spedizione' ? SHIPPING_COST : 0,
-          totale_articoli: subtotal,
-          totale_ordine: finalTotal,
-          note_cliente: tipoOrdine === 'spedizione' ? shippingData.noteSpedizione : pickupData.noteRitiro,
-          pagamento_id_paypal: paypalOrderId || null,
-          data_pagamento: paypalOrderId ? new Date().toISOString() : null,
-        })
-        .select('id, numero_ordine')
+        .insert([orderPayload])
+        .select()
         .single();
 
       if (orderError) {
-        throw new Error(orderError.message);
+        console.error('[ERRORE INSERIMENTO ORDINE SUPABASE]:', orderError);
+        setErrorMsg(`Impossibile registrare l'ordine nel database: ${orderError.message || 'Verifica la connessione o i permessi RLS.'}`);
+        setIsSubmitting(false);
+        return; // NON PROCEDERE AL REDIRECT SE C'È ERRORE!
       }
 
-      // 2. Inserisci Articoli dell'Ordine
-      const orderItems = cart.map((item) => ({
-        ordine_id: orderData.id,
-        prodotto_id: item.id,
-        nome_prodotto: item.nome,
-        quantita: item.quantita,
-        prezzo_unitario: item.prezzo_scontato && item.prezzo_scontato > 0 ? item.prezzo_scontato : item.prezzo,
-      }));
+      console.log('[ORDINE INSERITO CON SUCCESSO]:', orderData);
 
-      const { error: itemsError } = await supabase
-        .from('ordine_articoli')
-        .insert(orderItems);
+      // 1.2 Inserimento Articoli dell'Ordine
+      if (orderData && orderData.id) {
+        const orderItemsPayload = items.map((item) => ({
+          ordine_id: orderData.id,
+          prodotto_id: Number(item.id) || 1,
+          nome_prodotto: item.nome || 'Articolo',
+          quantita: Number(item.quantita) || 1,
+          prezzo_unitario: item.prezzo_scontato && item.prezzo_scontato > 0 ? Number(item.prezzo_scontato) : Number(item.prezzo || 0),
+        }));
 
-      if (itemsError) {
-        console.error('Errore inserimento articoli:', itemsError);
+        const { error: itemsError } = await supabase
+          .from('ordine_articoli')
+          .insert(orderItemsPayload);
+
+        if (itemsError) {
+          console.error('[ERRORE INSERIMENTO ARTICOLI ORDINE]:', itemsError);
+        }
       }
 
-      // 3. Pulisci il carrello Nanostores
+      // 1.3 Pulisci il carrello ed esegui il redirect solo dopo il successo su Supabase
       clearCart();
-
-      // 4. Redirect alla pagina di conferma
-      window.location.href = `/conferma?ordine=${orderNumber}&tipo=${tipoOrdine}&nome=${encodeURIComponent(nome)}&totale=${finalTotal.toFixed(2)}&fascia=${encodeURIComponent(pickupData.fasciaRitiro || '')}`;
+      window.location.href = `/conferma?ordine=${orderNumber}&tipo=${orderType}&nome=${encodeURIComponent(nome)}&totale=${finalTotal.toFixed(2)}&fascia=${encodeURIComponent(fascia)}`;
     } catch (err: any) {
-      console.error('Errore durante la creazione dell\'ordine:', err);
-      // Anche se Supabase dovesse fallire (es. chiavi non ancora inserite in .env), consentiamo comunque la demo
-      clearCart();
-      window.location.href = `/conferma?ordine=${orderNumber}&tipo=${tipoOrdine}&nome=${encodeURIComponent(nome)}&totale=${finalTotal.toFixed(2)}&fascia=${encodeURIComponent(pickupData.fasciaRitiro || '')}`;
-    } finally {
+      console.error('[ECCEZIONE CREAZIONE ORDINE]:', err);
+      setErrorMsg(`Errore imprevisto: ${err.message || 'Riprova tra poco.'}`);
       setIsSubmitting(false);
     }
   };
 
-  if (totalQty === 0) {
-    return (
-      <div className="max-w-3xl mx-auto px-4 py-20 text-center">
-        <div className="w-20 h-20 rounded-full bg-brand-cream text-brand-amber flex items-center justify-center mx-auto mb-6">
-          <Store className="w-10 h-10" />
-        </div>
-        <h1 className="text-2xl font-black text-brand-dark mb-2">Il tuo carrello è vuoto</h1>
-        <p className="text-sm text-brand-dark/60 mb-8 max-w-sm mx-auto">
-          Aggiungi qualche articolo di cartoleria, edicola o gadget dal nostro catalogo per completare l'ordine.
-        </p>
-        <a
-          href="/catalogo"
-          className="inline-flex items-center gap-2 px-6 py-3.5 bg-brand-amber text-white font-bold rounded-2xl shadow-md hover:bg-brand-amber/90 transition-all text-xs"
-        >
-          <span>Sfoglia il Catalogo</span>
-        </a>
-      </div>
-    );
-  }
-
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
-      
-      {/* Intestazione Checkout */}
-      <div className="mb-10 pb-6 border-b border-brand-dark/10 flex items-center justify-between">
-        <div>
-          <a
-            href="/catalogo"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-dark/60 hover:text-brand-dark transition-colors mb-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Continua gli acquisti</span>
-          </a>
-          <h1 className="text-3xl sm:text-4xl font-black text-brand-dark tracking-tight">
-            Completa il tuo Ordine
-          </h1>
-        </div>
-        <div className="text-right hidden sm:block">
-          <span className="text-xs text-brand-dark/60 block">Totale da Saldare</span>
-          <span className="text-2xl font-black text-brand-amber">{formatPrice(finalTotal)}</span>
-        </div>
+    <div className="max-w-4xl mx-auto px-4 py-10">
+      <div className="mb-6">
+        <a href="/catalogo" className="text-xs font-bold text-neutral-500 hover:text-neutral-900 mb-2 inline-block">
+          ← Torna al Catalogo
+        </a>
+        <h1 className="text-3xl font-black text-neutral-900">Completa il tuo Ordine</h1>
       </div>
 
       {errorMsg && (
-        <div className="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold">
+        <div className="mb-6 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold">
           ⚠️ {errorMsg}
         </div>
       )}
-
-      {/* Griglia a 2 Colonne (Form + Riepilogo) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-        
-        {/* Colonna Sinistra: Moduli di Checkout */}
-        <div className="lg:col-span-7 space-y-8">
-          
-          {/* 1. Scelta Modalità di Consegna / Ritiro */}
-          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-brand-dark/10 shadow-sm space-y-6">
-            <h3 className="text-base font-extrabold text-brand-dark flex items-center gap-2">
-              <span>1. Scegli la Modalità di Ricezione</span>
-            </h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              
-              {/* Opzione 1: Scegli & Ritira */}
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {/* Modulo Dati e Scelta */}
+        <div className="md:col-span-2 space-y-6">
+          <div className="bg-white p-6 rounded-2xl border border-neutral-200 shadow-sm">
+            <h2 className="text-base font-bold mb-4 text-neutral-900">1. Scegli la modalità</h2>
+            <div className="grid grid-cols-2 gap-4">
               <button
                 type="button"
-                onClick={() => setTipoOrdine('ritiro')}
-                className={`p-5 rounded-2xl border-2 text-left transition-all relative flex flex-col justify-between ${
-                  tipoOrdine === 'ritiro'
-                    ? 'border-emerald-600 bg-emerald-50/40 shadow-sm'
-                    : 'border-brand-dark/10 bg-brand-cream/20 hover:border-brand-dark/30'
+                onClick={() => setOrderType('ritiro')}
+                className={`p-4 rounded-xl border-2 font-bold text-left transition cursor-pointer ${
+                  orderType === 'ritiro' ? 'border-amber-500 bg-amber-50/50 text-amber-950 shadow-sm' : 'border-neutral-200 hover:border-neutral-300'
                 }`}
               >
-                <div className="flex items-center justify-between mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center">
-                    <Store className="w-5 h-5" />
-                  </div>
-                  <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-                    GRATIS
-                  </span>
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-brand-dark">Scegli &amp; Ritira</h4>
-                  <p className="text-xs text-brand-dark/60 mt-1">
-                    Ritira comodamente al locale e paga sul posto senza spese.
-                  </p>
-                </div>
+                🏪 Ritiro in Negozio
+                <span className="block text-xs font-normal text-neutral-500 mt-1">Gratuito • Paga al ritiro</span>
               </button>
-
-              {/* Opzione 2: Spedizione con Corriere */}
               <button
                 type="button"
-                onClick={() => setTipoOrdine('spedizione')}
-                className={`p-5 rounded-2xl border-2 text-left transition-all relative flex flex-col justify-between ${
-                  tipoOrdine === 'spedizione'
-                    ? 'border-brand-amber bg-brand-amber/10 shadow-sm'
-                    : 'border-brand-dark/10 bg-brand-cream/20 hover:border-brand-dark/30'
+                onClick={() => setOrderType('spedizione')}
+                className={`p-4 rounded-xl border-2 font-bold text-left transition cursor-pointer ${
+                  orderType === 'spedizione' ? 'border-amber-500 bg-amber-50/50 text-amber-950 shadow-sm' : 'border-neutral-200 hover:border-neutral-300'
                 }`}
               >
-                <div className="flex items-center justify-between mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-brand-amber text-white flex items-center justify-center">
-                    <Truck className="w-5 h-5" />
-                  </div>
-                  <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-brand-amber/20 text-brand-dark">
-                    € {SHIPPING_COST.toFixed(2)}
-                  </span>
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-brand-dark">Spedizione a Casa</h4>
-                  <p className="text-xs text-brand-dark/60 mt-1">
-                    Consegna con corriere espresso e pagamento sicuro PayPal.
-                  </p>
-                </div>
+                📦 Spedizione a Casa
+                <span className="block text-xs font-normal text-neutral-500 mt-1">Spedizione (+ € 5.90)</span>
               </button>
-
             </div>
-
-            {/* Sotto-modulo dinamico (Spedizione o Ritiro) */}
-            {tipoOrdine === 'spedizione' ? (
-              <ShippingForm
-                data={shippingData}
-                onChange={setShippingData}
-                shippingCost={SHIPPING_COST}
-              />
-            ) : (
-              <PickupForm
-                data={pickupData}
-                onChange={setPickupData}
-              />
-            )}
-
           </div>
 
-          {/* 2. Dati di Contatto del Cliente */}
-          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-brand-dark/10 shadow-sm space-y-6">
-            <h3 className="text-base font-extrabold text-brand-dark flex items-center gap-2">
-              <span>2. I Tuoi Recapiti di Contatto</span>
-            </h3>
+          <div className="bg-white p-6 rounded-2xl border border-neutral-200 shadow-sm space-y-4">
+            <h2 className="text-base font-bold text-neutral-900">2. I tuoi dati</h2>
+            
+            <div>
+              <label className="block text-xs font-bold text-neutral-700 mb-1">Nome e Cognome *</label>
+              <input 
+                type="text" 
+                required
+                value={nome} 
+                onChange={(e) => setNome(e.target.value)} 
+                placeholder="es. Mario Rossi" 
+                className="w-full p-3 rounded-lg border border-neutral-300 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+              />
+            </div>
 
-            <div className="space-y-3.5 text-xs">
+            <div>
+              <label className="block text-xs font-bold text-neutral-700 mb-1">Numero di Telefono (per avviso WhatsApp) *</label>
+              <input 
+                type="tel" 
+                required
+                value={telefono} 
+                onChange={(e) => setTelefono(e.target.value)} 
+                placeholder="es. 340 1234567" 
+                className="w-full p-3 rounded-lg border border-neutral-300 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-neutral-700 mb-1">Email (opzionale)</label>
+              <input 
+                type="email" 
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)} 
+                placeholder="mario.rossi@email.it" 
+                className="w-full p-3 rounded-lg border border-neutral-300 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+              />
+            </div>
+
+            {orderType === 'ritiro' ? (
               <div>
-                <label className="block font-bold text-brand-dark mb-1">
-                  Nome e Cognome Completo *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={nome}
-                  onChange={(e) => setNome(e.target.value)}
-                  placeholder="Es. Mario Rossi"
-                  className="w-full px-3.5 py-2.5 bg-brand-cream/40 border border-brand-dark/15 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-amber text-brand-dark"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div>
-                  <label className="block font-bold text-brand-dark mb-1">
-                    Indirizzo Email *
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="mario.rossi@email.it"
-                    className="w-full px-3.5 py-2.5 bg-brand-cream/40 border border-brand-dark/15 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-amber text-brand-dark"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-brand-dark mb-1">
-                    Numero di Telefono / WhatsApp *
-                  </label>
-                  <input
-                    type="tel"
-                    required
-                    value={telefono}
-                    onChange={(e) => setTelefono(e.target.value)}
-                    placeholder="Es. 340 1234567"
-                    className="w-full px-3.5 py-2.5 bg-brand-cream/40 border border-brand-dark/15 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-amber text-brand-dark"
-                  />
-                  <span className="text-[10px] text-brand-dark/50 mt-1 block">
-                    Usato per inviarti l'avviso di ritiro o tracking su WhatsApp.
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 3. Pagamento e Conferma Finale */}
-          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-brand-dark/10 shadow-sm space-y-6">
-            <h3 className="text-base font-extrabold text-brand-dark">
-              <span>3. Conferma dell'Ordine</span>
-            </h3>
-
-            {tipoOrdine === 'ritiro' ? (
-              <div className="space-y-4">
-                <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 leading-relaxed">
-                  <span className="font-bold block mb-1">✨ Nessun pagamento anticipato richiesto!</span>
-                  Inviando l'ordine con <strong>Scegli &amp; Ritira</strong>, riserveremo subito i tuoi articoli. Potrai saldare l'importo totale di <strong>{formatPrice(finalTotal)}</strong> in contanti o con POS direttamente al momento del ritiro.
-                </div>
-
-                <p className="text-[11px] text-brand-dark/60 text-center">
-                  Inviando l'ordine confermi di aver preso visione della nostra{' '}
-                  <a href="/privacy" target="_blank" className="underline hover:text-brand-amber font-semibold">
-                    Informativa Privacy (GDPR)
-                  </a>.
-                </p>
-
-                <button
-                  type="button"
-                  disabled={isSubmitting || !isCustomerValid}
-                  onClick={() => submitOrder()}
-                  className="w-full py-4 px-6 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold rounded-2xl shadow-lg shadow-emerald-600/25 transition-all flex items-center justify-center gap-2 text-sm"
+                <label className="block text-xs font-bold text-neutral-700 mb-1">Fascia oraria di ritiro</label>
+                <select 
+                  value={fascia} 
+                  onChange={(e) => setFascia(e.target.value)}
+                  className="w-full p-3 rounded-lg border border-neutral-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
                 >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      <span>Registrazione ordine in corso...</span>
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="w-5 h-5" />
-                      <span>Conferma Scegli &amp; Ritira ({formatPrice(finalTotal)})</span>
-                    </>
-                  )}
-                </button>
+                  <option value="08:00 - 10:00 (Prima Mattina)">08:00 - 10:00 (Prima Mattina)</option>
+                  <option value="10:00 - 12:30 (Metà Mattinata)">10:00 - 12:30 (Metà Mattinata)</option>
+                  <option value="16:00 - 18:00 (Pomeriggio)">16:00 - 18:00 (Pomeriggio)</option>
+                  <option value="18:00 - 19:30 (Sera)">18:00 - 19:30 (Sera)</option>
+                </select>
               </div>
             ) : (
-              <div className="space-y-4">
-                <div className="p-4 rounded-2xl bg-brand-cream/60 border border-brand-dark/10 text-xs text-brand-dark/80">
-                  Per le spedizioni a domicilio, il pagamento è gestito tramite circuito sicuro <strong>PayPal / Carta</strong>.
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-bold text-neutral-700 mb-1">Indirizzo di Spedizione Completo *</label>
+                  <input 
+                    type="text" 
+                    required
+                    value={indirizzo} 
+                    onChange={(e) => setIndirizzo(e.target.value)} 
+                    placeholder="Via, Piazza, Numero Civico" 
+                    className="w-full p-3 rounded-lg border border-neutral-300 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  />
                 </div>
-
-                <p className="text-[11px] text-brand-dark/60 text-center">
-                  Completando l'acquisto confermi di aver preso visione della nostra{' '}
-                  <a href="/privacy" target="_blank" className="underline hover:text-brand-amber font-semibold">
-                    Informativa Privacy (GDPR)
-                  </a>.
-                </p>
-
-                <PayPalButton
-                  amount={finalTotal}
-                  disabled={!isCustomerValid || !isShippingValid}
-                  onSuccess={(paypalId) => submitOrder(paypalId)}
-                  onError={(err) => setErrorMsg('Errore durante la transazione PayPal. Riprova.')}
-                />
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-neutral-700 mb-1">Città</label>
+                    <input 
+                      type="text" 
+                      value={citta} 
+                      onChange={(e) => setCitta(e.target.value)} 
+                      className="w-full p-3 rounded-lg border border-neutral-300 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-neutral-700 mb-1">CAP</label>
+                    <input 
+                      type="text" 
+                      value={cap} 
+                      onChange={(e) => setCap(e.target.value)} 
+                      className="w-full p-3 rounded-lg border border-neutral-300 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    />
+                  </div>
+                </div>
               </div>
             )}
-          </div>
 
+            <button 
+              type="button" 
+              disabled={isSubmitting}
+              onClick={handleConfirmOrder}
+              className="w-full py-4 bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white font-bold rounded-xl shadow-md transition cursor-pointer text-sm"
+            >
+              {isSubmitting 
+                ? 'Salvataggio ordine in corso...' 
+                : (orderType === 'ritiro' 
+                    ? `Conferma Ordine con Ritiro (€ ${finalTotal.toFixed(2)})` 
+                    : `Conferma Spedizione (€ ${finalTotal.toFixed(2)})`)}
+            </button>
+          </div>
         </div>
 
-        {/* Colonna Destra: Riepilogo Carrello */}
-        <aside className="lg:col-span-5 sticky top-24">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-brand-dark/10 shadow-sm space-y-6">
-            
-            <h3 className="text-base font-extrabold text-brand-dark pb-4 border-b border-brand-dark/10 flex items-center justify-between">
-              <span>Riepilogo Carrello</span>
-              <span className="text-xs text-brand-dark/50 font-semibold">{totalQty} articoli</span>
-            </h3>
+        {/* Riepilogo Ordine */}
+        <div className="bg-white p-6 rounded-2xl border border-neutral-200 shadow-sm h-fit space-y-4">
+          <h3 className="font-bold text-base border-b pb-3 text-neutral-900 flex justify-between items-center">
+            <span>Riepilogo Carrello</span>
+            <span className="text-xs bg-teal-50 text-teal-700 px-2.5 py-1 rounded-full font-extrabold">
+              {totalQty} {totalQty === 1 ? 'articolo' : 'articoli'}
+            </span>
+          </h3>
 
-            {/* Lista Prodotti */}
-            <div className="max-h-72 overflow-y-auto space-y-3 pr-2 divide-y divide-brand-dark/5">
-              {cart.map((item) => (
-                <div key={item.id} className="pt-3 first:pt-0 flex items-center gap-3">
-                  <img
-                    src={item.immagine_url || 'https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=200&auto=format&fit=crop&q=80'}
-                    alt={item.nome}
-                    className="w-12 h-12 rounded-xl object-cover bg-brand-cream border border-brand-dark/10 flex-shrink-0"
-                  />
-                  <div className="flex-1 min-w-0 text-xs">
-                    <h5 className="font-bold text-brand-dark truncate">{item.nome}</h5>
-                    <span className="text-brand-dark/50">Q.tà: {item.quantita}</span>
+          {items.length === 0 ? (
+            <div className="py-4 text-center">
+              <p className="text-xs text-neutral-500 mb-3">Nessun articolo selezionato.</p>
+              <a href="/catalogo" className="text-xs font-bold text-teal-600 hover:underline">
+                Aggiungi prodotti dal catalogo
+              </a>
+            </div>
+          ) : (
+            <div className="space-y-3 divide-y divide-neutral-100 max-h-80 overflow-y-auto pr-1">
+              {items.map((item: any, idx: number) => {
+                const unitPrice = Number(item.prezzo_scontato && item.prezzo_scontato > 0 ? item.prezzo_scontato : (item.prezzo || item.price || 0));
+                const itemQty = Number(item.quantita) || 1;
+                return (
+                  <div key={idx} className="pt-2.5 first:pt-0 flex justify-between items-center text-xs">
+                    <div className="min-w-0 pr-2">
+                      <p className="font-bold text-neutral-900 truncate">{item.nome || item.title}</p>
+                      <p className="text-[11px] text-neutral-500">€ {unitPrice.toFixed(2)} × {itemQty}</p>
+                    </div>
+                    <span className="font-bold text-neutral-900 shrink-0">
+                      € {(unitPrice * itemQty).toFixed(2)}
+                    </span>
                   </div>
-                  <span className="text-xs font-bold text-brand-dark">
-                    {formatPrice(
-                      (item.prezzo_scontato && item.prezzo_scontato > 0 ? item.prezzo_scontato : item.prezzo) * item.quantita
-                    )}
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
+          )}
 
-            {/* Totali e Calcoli */}
-            <div className="pt-4 border-t border-brand-dark/10 space-y-2 text-xs">
-              <div className="flex justify-between text-brand-dark/70">
-                <span>Subtotale articoli</span>
-                <span className="font-bold text-brand-dark">{formatPrice(subtotal)}</span>
-              </div>
-
-              <div className="flex justify-between text-brand-dark/70">
-                <span>Modalità consegna</span>
-                <span className="font-bold text-brand-dark">
-                  {tipoOrdine === 'ritiro' ? 'Scegli & Ritira (Gratis)' : `Corriere (€ ${SHIPPING_COST.toFixed(2)})`}
-                </span>
-              </div>
-
-              <div className="pt-3 border-t border-brand-dark/10 flex justify-between items-baseline">
-                <span className="text-sm font-extrabold text-brand-dark">Totale Finale</span>
-                <span className="text-2xl font-black text-brand-amber">{formatPrice(finalTotal)}</span>
-              </div>
+          <div className="border-t pt-3 space-y-1.5 text-xs">
+            <div className="flex justify-between text-neutral-600">
+              <span>Subtotale articoli</span>
+              <span className="font-bold text-neutral-900">€ {subtotal.toFixed(2)}</span>
             </div>
-
-            <div className="p-3 rounded-xl bg-brand-cream/50 border border-brand-dark/5 text-[11px] text-brand-dark/70 flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-              <span>Transazione sicura e assistenza locale garantita.</span>
+            <div className="flex justify-between text-neutral-600">
+              <span>Consegna</span>
+              <span className="font-bold text-neutral-900">
+                {orderType === 'ritiro' ? 'Gratuita' : `€ ${shippingCost.toFixed(2)}`}
+              </span>
             </div>
-
+            <div className="flex justify-between text-sm font-black text-neutral-900 border-t pt-2 mt-2">
+              <span>Totale Ordine</span>
+              <span className="text-teal-600 text-lg">€ {finalTotal.toFixed(2)}</span>
+            </div>
           </div>
-        </aside>
-
+        </div>
       </div>
-
     </div>
   );
-}
+};
+
+export default CheckoutPage;

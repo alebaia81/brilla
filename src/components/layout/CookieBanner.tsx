@@ -50,7 +50,7 @@ export default function CookieBanner() {
         </div>
 
         <p className="text-xs text-white/80 leading-relaxed">
-          Questo sito utilizza <strong>esclusivamente cookie tecnici ed archiviazione locale (localStorage)</strong> per il corretto funzionamento del carrello spesa. Nessun cookie di profilazione o tracciamento pubblicitario.
+          Utilizziamo esclusivamente <strong>cookie tecnici necessari</strong> per il corretto funzionamento del sito e per memorizzare i prodotti nel tuo carrello. Nessun tracciamento pubblicitario o profilazione.
         </p>
 
         <div className="flex items-center justify-between gap-3 pt-1">

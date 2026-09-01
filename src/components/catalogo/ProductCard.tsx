@@ -74,12 +74,6 @@ export default function ProductCard({ product }: ProductCardProps) {
               -{product.sconto_percentuale}%
             </span>
           )}
-
-          {product.in_edicola_questo_mese && (
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold text-white bg-emerald-600 shadow-sm">
-              In Edicola
-            </span>
-          )}
         </div>
 
         {/* Quick View overlay */}
