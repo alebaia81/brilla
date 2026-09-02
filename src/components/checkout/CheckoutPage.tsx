@@ -12,6 +12,24 @@ export const CheckoutPage = () => {
   const [indirizzo, setIndirizzo] = useState('');
   const [citta, setCitta] = useState('Castelnuovo Bocca d\'Adda');
   const [cap, setCap] = useState('26843');
+  const getTodayIso = () => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const getTomorrowIso = () => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const [dataRitiro, setDataRitiro] = useState(getTodayIso());
   const [fascia, setFascia] = useState('10:00 - 12:30 (Metà Mattinata)');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -42,6 +60,11 @@ export const CheckoutPage = () => {
       return;
     }
 
+    if (orderType === 'ritiro' && !dataRitiro) {
+      setErrorMsg('Per favore seleziona il giorno desiderato per il ritiro.');
+      return;
+    }
+
     if (items.length === 0) {
       setErrorMsg('Il tuo carrello è vuoto.');
       return;
@@ -63,6 +86,7 @@ export const CheckoutPage = () => {
         cliente_telefono: telefono.trim(),
         tipo_ordine: orderType,
         stato: 'in_sospeso',
+        data_ritiro_prevista: orderType === 'ritiro' ? (dataRitiro || getTodayIso()) : null,
         fascia_ritiro: orderType === 'ritiro' ? fascia : null,
         indirizzo_spedizione: orderType === 'spedizione' ? indirizzo.trim() : null,
         citta_spedizione: orderType === 'spedizione' ? citta.trim() : null,
@@ -70,7 +94,9 @@ export const CheckoutPage = () => {
         costo_spedizione: shippingCost,
         totale_articoli: subtotal,
         totale_ordine: finalTotal,
-        note_cliente: orderType === 'spedizione' ? `Spedizione: ${indirizzo.trim()}, ${citta.trim()} ${cap.trim()}` : `Ritiro: ${fascia}`,
+        note_cliente: orderType === 'spedizione' 
+          ? `Spedizione: ${indirizzo.trim()}, ${citta.trim()} ${cap.trim()}` 
+          : `Ritiro: ${dataRitiro} - Fascia: ${fascia}`,
       };
 
       console.log('[ORDINE PAYLOAD]', orderPayload);
@@ -111,7 +137,7 @@ export const CheckoutPage = () => {
 
       // 1.3 Pulisci il carrello ed esegui il redirect solo dopo il successo su Supabase
       clearCart();
-      window.location.href = `/conferma?ordine=${orderNumber}&tipo=${orderType}&nome=${encodeURIComponent(nome)}&totale=${finalTotal.toFixed(2)}&fascia=${encodeURIComponent(fascia)}`;
+      window.location.href = `/conferma?ordine=${orderNumber}&tipo=${orderType}&nome=${encodeURIComponent(nome)}&telefono=${encodeURIComponent(telefono)}&totale=${finalTotal.toFixed(2)}&fascia=${encodeURIComponent(fascia)}&data=${encodeURIComponent(dataRitiro)}`;
     } catch (err: any) {
       console.error('[ECCEZIONE CREAZIONE ORDINE]:', err);
       setErrorMsg(`Errore imprevisto: ${err.message || 'Riprova tra poco.'}`);
@@ -202,18 +228,65 @@ export const CheckoutPage = () => {
             </div>
 
             {orderType === 'ritiro' ? (
-              <div>
-                <label className="block text-xs font-bold text-neutral-700 mb-1">Fascia oraria di ritiro</label>
-                <select 
-                  value={fascia} 
-                  onChange={(e) => setFascia(e.target.value)}
-                  className="w-full p-3 rounded-lg border border-neutral-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
-                >
-                  <option value="08:00 - 10:00 (Prima Mattina)">08:00 - 10:00 (Prima Mattina)</option>
-                  <option value="10:00 - 12:30 (Metà Mattinata)">10:00 - 12:30 (Metà Mattinata)</option>
-                  <option value="16:00 - 18:00 (Pomeriggio)">16:00 - 18:00 (Pomeriggio)</option>
-                  <option value="18:00 - 19:30 (Sera)">18:00 - 19:30 (Sera)</option>
-                </select>
+              <div className="space-y-4 pt-2 border-t border-neutral-100">
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-bold text-neutral-700">
+                      📅 Giorno di Ritiro Desiderato *
+                    </label>
+                    <div className="flex gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setDataRitiro(getTodayIso())}
+                        className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer ${
+                          dataRitiro === getTodayIso()
+                            ? 'bg-amber-500 text-white shadow-xs'
+                            : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                        }`}
+                      >
+                        Oggi
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDataRitiro(getTomorrowIso())}
+                        className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer ${
+                          dataRitiro === getTomorrowIso()
+                            ? 'bg-amber-500 text-white shadow-xs'
+                            : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                        }`}
+                      >
+                        Domani
+                      </button>
+                    </div>
+                  </div>
+                  <input
+                    type="date"
+                    required
+                    min={getTodayIso()}
+                    value={dataRitiro}
+                    onChange={(e) => setDataRitiro(e.target.value)}
+                    className="w-full p-3 rounded-lg border border-neutral-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"
+                  />
+                  <span className="block text-[11px] text-neutral-500 mt-1">
+                    Orario di apertura: Lun-Sab 06:30–12:30 / 15:30–19:30 • Dom 07:00–12:30
+                  </span>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-neutral-700 mb-1">
+                    ⏰ Fascia oraria di ritiro
+                  </label>
+                  <select 
+                    value={fascia} 
+                    onChange={(e) => setFascia(e.target.value)}
+                    className="w-full p-3 rounded-lg border border-neutral-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"
+                  >
+                    <option value="08:00 - 10:00 (Prima Mattina)">08:00 - 10:00 (Prima Mattina)</option>
+                    <option value="10:00 - 12:30 (Metà Mattinata)">10:00 - 12:30 (Metà Mattinata)</option>
+                    <option value="16:00 - 18:00 (Pomeriggio)">16:00 - 18:00 (Pomeriggio)</option>
+                    <option value="18:00 - 19:30 (Sera)">18:00 - 19:30 (Sera)</option>
+                  </select>
+                </div>
               </div>
             ) : (
               <div className="space-y-3">

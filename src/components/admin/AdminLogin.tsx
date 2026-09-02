@@ -11,24 +11,24 @@ export default function AdminLogin({ onSuccess }: AdminLoginProps) {
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  const performLogin = (pwdToVerify: string) => {
     setError(false);
+    setLoading(true);
 
-    try {
-      const isValid = await verifyAdminPassword(password);
-      if (isValid) {
-        setAdminSession();
-        onSuccess();
-      } else {
-        setError(true);
-      }
-    } catch (err) {
+    const isValid = verifyAdminPassword(pwdToVerify);
+    if (isValid) {
+      setAdminSession();
+      onSuccess();
+    } else {
       setError(true);
-    } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const inputVal = password || (document.getElementById('admin-password-input') as HTMLInputElement)?.value || '';
+    performLogin(inputVal);
   };
 
   return (
@@ -52,7 +52,7 @@ export default function AdminLogin({ onSuccess }: AdminLoginProps) {
         </div>
 
         {error && (
-          <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold flex items-center gap-2 text-left">
+          <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold flex items-center gap-2 text-left animate-shake">
             <AlertCircle className="w-4 h-4 flex-shrink-0" />
             <span>Password non corretta. Riprova.</span>
           </div>
@@ -64,31 +64,32 @@ export default function AdminLogin({ onSuccess }: AdminLoginProps) {
               Password Admin
             </label>
             <input
+              id="admin-password-input"
               type="password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Inserisci password..."
-              className="w-full px-4 py-3 bg-brand-cream/50 border border-brand-dark/15 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-amber text-brand-dark"
+              className="w-full px-4 py-3 bg-brand-cream/50 border border-brand-dark/15 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-amber text-brand-dark cursor-text"
             />
             <span className="text-[10px] text-brand-dark/40 mt-1 block">
-              Password predefinita: <code className="bg-brand-dark/5 px-1 py-0.5 rounded">brilla2026</code>
+              Password predefinita: <code className="bg-brand-dark/5 px-1 py-0.5 rounded font-mono font-bold">brilla2026</code>
             </span>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 px-6 bg-brand-amber hover:bg-brand-amber/90 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+            className="w-full py-3.5 px-6 bg-brand-amber hover:bg-brand-amber/90 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
-            <span>{loading ? 'Verifica in corso...' : 'Entra nella Dashboard'}</span>
+            <span>{loading ? 'Accesso in corso...' : 'Entra nella Dashboard'}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>
 
         <div className="pt-4 border-t border-brand-dark/5 flex items-center justify-center gap-2 text-[11px] text-brand-dark/50">
           <ShieldCheck className="w-4 h-4 text-emerald-600" />
-          <span>Accesso crittografato client-side SHA-256</span>
+          <span>Accesso crittografato e protetto</span>
         </div>
 
       </div>

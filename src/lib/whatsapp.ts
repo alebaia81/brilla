@@ -52,8 +52,15 @@ export function generateStatusMessage(order: OrderDataForWhatsApp, newStatus: st
 
     case 'pronto':
       if (isPickup) {
-        const fascia = order.fascia_ritiro ? ` (fascia oraria: ${order.fascia_ritiro})` : '';
-        return `Ciao ${order.cliente_nome}! 🎉\nIl tuo ordine *#${order.numero_ordine}* è pronto per il ritiro presso *Brilla Cafe* in Via Roma a Castelnuovo Bocca d'Adda${fascia}.\nTotale da saldare in cassa: *€ ${order.totale_ordine.toFixed(2)}*.\nTi aspettiamo! ☕📚`;
+        let pickupDetails = '';
+        if (order.data_ritiro_prevista && order.fascia_ritiro) {
+          pickupDetails = ` (previsto per il ${order.data_ritiro_prevista}, fascia: ${order.fascia_ritiro})`;
+        } else if (order.data_ritiro_prevista) {
+          pickupDetails = ` (previsto per il ${order.data_ritiro_prevista})`;
+        } else if (order.fascia_ritiro) {
+          pickupDetails = ` (fascia oraria: ${order.fascia_ritiro})`;
+        }
+        return `Ciao ${order.cliente_nome}! 🎉\nIl tuo ordine *#${order.numero_ordine}* è pronto per il ritiro presso *Brilla Cafe* in Via Umberto I, 35 a Castelnuovo Bocca d'Adda${pickupDetails}.\nTotale da saldare in cassa: *€ ${order.totale_ordine.toFixed(2)}*.\nTi aspettiamo! ☕📚`;
       } else {
         return `Ciao ${order.cliente_nome}! 📦\nIl tuo ordine *#${order.numero_ordine}* è pronto e imballato per la spedizione! Riceverai il codice di tracciamento a breve.`;
       }

@@ -22,6 +22,7 @@
     "astro": "^7.2.9",
     "lucide-react": "^1.38.0",
     "nanostores": "^1.5.2",
+    "qrcode.react": "^4.2.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "tailwindcss": "^4.3.3"

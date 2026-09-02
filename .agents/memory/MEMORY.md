@@ -92,6 +92,7 @@
 
 ## 🚀 Log Ultimi Commit
 
+- `feat`: add supabase realtime orders, pickup date picker, smart digital receipt with qr code and admin auth fix
 - `e148fcc` — feat(design): embed 3 official category photos and remove cartoonish emojis with editorial UI styling
 - `f6f1def` — refactor(hero): remove 3 pill cards and enhance conversion copywriting with store pickup emphasis
 - `aa5017d` — feat: replace 'gift' nomenclature with 'idee regalo' across all components and pages

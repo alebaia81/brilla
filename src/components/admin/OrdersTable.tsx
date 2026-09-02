@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { formatPrice, formatDate } from '../../lib/format';
 import OrderDetail, { type Order } from './OrderDetail';
-import { Store, Truck, Search, Eye, Filter, RefreshCw } from 'lucide-react';
+import { Store, Truck, Search, Eye, Filter, RefreshCw, Bell, X, Sparkles, ArrowRight } from 'lucide-react';
 
 export default function OrdersTable() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -10,6 +10,7 @@ export default function OrdersTable() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [newOrderBanner, setNewOrderBanner] = useState<Order | null>(null);
 
   const loadOrders = async () => {
     setLoading(true);
@@ -33,7 +34,31 @@ export default function OrdersTable() {
   };
 
   useEffect(() => {
-    loadOrders();
+    loadOrders(); // Fetch iniziale
+
+    const channel = supabase
+      .channel('admin-ordini-realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'ordini' },
+        (payload) => {
+          console.log('Nuovo ordine ricevuto in tempo reale:', payload.new);
+          const newOrder = payload.new as Order;
+          // 1. Aggiungi il nuovo ordine in cima alla lista ordini evitando duplicati
+          setOrders((prev) => {
+            const exists = prev.some((o) => o.id === newOrder.id);
+            if (exists) return prev;
+            return [newOrder, ...prev];
+          });
+          // 2. Mostra il banner di notifica
+          setNewOrderBanner(newOrder);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   if (selectedOrder) {
@@ -86,6 +111,53 @@ export default function OrdersTable() {
   return (
     <div className="space-y-6">
       
+      {/* Banner Notifica Nuovo Ordine Realtime */}
+      {newOrderBanner && (
+        <div className="relative overflow-hidden bg-gradient-to-r from-amber-500 via-brand-amber to-amber-600 text-brand-dark p-4 sm:p-5 rounded-3xl shadow-lg border border-amber-400/40 animate-fade-in flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-start sm:items-center gap-3.5">
+            <div className="w-10 h-10 rounded-2xl bg-white/90 flex items-center justify-center shrink-0 shadow-sm">
+              <Bell className="w-5 h-5 text-amber-700 animate-bounce" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1 text-[11px] font-black uppercase tracking-wider bg-white/80 px-2 py-0.5 rounded-full text-brand-dark">
+                  <Sparkles className="w-3 h-3 text-amber-600" />
+                  Nuovo Ordine in Arrivo!
+                </span>
+                <span className="text-xs font-mono font-bold text-white/90">
+                  {newOrderBanner.numero_ordine}
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm font-extrabold text-white mt-1">
+                {newOrderBanner.cliente_nome} ha effettuato un ordine da {formatPrice(newOrderBanner.totale_ordine)} ({newOrderBanner.tipo_ordine === 'ritiro' ? 'Scegli & Ritira' : 'Spedizione a domicilio'})
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 self-end md:self-auto shrink-0">
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedOrder(newOrderBanner);
+                setNewOrderBanner(null);
+              }}
+              className="px-4 py-2 bg-brand-dark text-white hover:bg-white hover:text-brand-dark transition-all rounded-xl font-bold text-xs inline-flex items-center gap-1.5 shadow-sm cursor-pointer"
+            >
+              <span>Gestisci Subito</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setNewOrderBanner(null)}
+              className="p-2 bg-white/20 hover:bg-white/40 text-white rounded-xl transition-colors cursor-pointer"
+              title="Chiudi avviso"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header & Filtri */}
       <div className="bg-white p-6 rounded-3xl border border-brand-dark/10 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

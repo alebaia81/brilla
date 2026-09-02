@@ -1,44 +1,122 @@
 import React, { useEffect, useState } from 'react';
-import { isAdminAuthenticated, clearAdminSession } from '../../lib/admin-auth';
-import AdminLogin from './AdminLogin';
+import { isAdminAuthenticated, setAdminSession, clearAdminSession, verifyAdminPassword } from '../../lib/admin-auth';
 import OrdersTable from './OrdersTable';
 import ProductManager from './ProductManager';
 import CategoryManager from './CategoryManager';
-import { ShoppingBag, Package, Tags, LogOut, Store, ShieldCheck, Menu, X, ChevronRight } from 'lucide-react';
+import { 
+  ShoppingBag, 
+  Package, 
+  Tags, 
+  LogOut, 
+  Store, 
+  ShieldCheck, 
+  Menu, 
+  X, 
+  ChevronRight,
+  Lock,
+  ArrowRight,
+  AlertCircle
+} from 'lucide-react';
 
 interface AdminLayoutProps {
   initialTab?: 'ordini' | 'prodotti' | 'categorie';
 }
 
 export default function AdminLayout({ initialTab = 'ordini' }: AdminLayoutProps) {
-  const [authenticated, setAuthenticated] = useState(false);
+  const [authenticated, setAuthenticated] = useState<boolean>(false);
+  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState(false);
   const [activeTab, setActiveTab] = useState<'ordini' | 'prodotti' | 'categorie'>(initialTab);
-  const [checking, setChecking] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    setAuthenticated(isAdminAuthenticated());
-    setChecking(false);
+    if (isAdminAuthenticated()) {
+      setAuthenticated(true);
+    }
   }, []);
+
+  const handleLoginSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const clean = (password || (document.getElementById('admin-password-input') as HTMLInputElement)?.value || '').trim();
+    if (verifyAdminPassword(clean)) {
+      setAdminSession();
+      setAuthenticated(true);
+      setLoginError(false);
+    } else {
+      setLoginError(true);
+    }
+  };
 
   const handleLogout = () => {
     clearAdminSession();
     setAuthenticated(false);
+    setPassword('');
   };
 
-  if (checking) {
+  if (!authenticated) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="flex items-center gap-3 text-brand-dark/60 font-bold text-sm bg-white px-6 py-4 rounded-2xl shadow-sm border border-brand-dark/10">
-          <span className="w-2.5 h-2.5 rounded-full bg-brand-cyan animate-ping" />
-          Verifica autorizzazione in corso...
+      <div className="min-h-[70vh] flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-md bg-white rounded-3xl p-8 sm:p-10 border border-brand-dark/10 shadow-xl text-center space-y-6">
+          
+          <div className="w-16 h-16 rounded-2xl bg-brand-dark text-brand-amber flex items-center justify-center mx-auto shadow-md">
+            <Lock className="w-8 h-8" />
+          </div>
+
+          <div>
+            <span className="px-3 py-1 rounded-full bg-brand-dark/5 text-brand-dark text-xs font-bold uppercase tracking-wider inline-block mb-2">
+              Pannello Esercente
+            </span>
+            <h1 className="text-2xl font-black text-brand-dark">
+              Accesso Area Riservata
+            </h1>
+            <p className="text-xs text-brand-dark/60 mt-1">
+              Inserisci la password di amministrazione per gestire ordini e catalogo.
+            </p>
+          </div>
+
+          {loginError && (
+            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold flex items-center gap-2 text-left">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <span>Password non corretta. Riprova.</span>
+            </div>
+          )}
+
+          <form onSubmit={handleLoginSubmit} className="space-y-4 text-left">
+            <div>
+              <label className="block text-xs font-bold text-brand-dark mb-1.5 uppercase tracking-wider">
+                Password Admin
+              </label>
+              <input
+                id="admin-password-input"
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Inserisci password..."
+                className="w-full px-4 py-3 bg-brand-cream/50 border border-brand-dark/15 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-amber text-brand-dark cursor-text"
+              />
+              <span className="text-[10px] text-brand-dark/40 mt-1 block">
+                Password predefinita: <code className="bg-brand-dark/5 px-1 py-0.5 rounded font-mono font-bold">brilla2026</code>
+              </span>
+            </div>
+
+            <button
+              type="submit"
+              className="w-full py-3.5 px-6 bg-brand-amber hover:bg-brand-amber/90 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <span>Entra nella Dashboard</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </form>
+
+          <div className="pt-4 border-t border-brand-dark/5 flex items-center justify-center gap-2 text-[11px] text-brand-dark/50">
+            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+            <span>Accesso protetto</span>
+          </div>
+
         </div>
       </div>
     );
-  }
-
-  if (!authenticated) {
-    return <AdminLogin onSuccess={() => setAuthenticated(true)} />;
   }
 
   const navItems = [
@@ -133,7 +211,7 @@ export default function AdminLayout({ initialTab = 'ordini' }: AdminLayoutProps)
                       setActiveTab(item.id);
                       setMobileMenuOpen(false);
                     }}
-                    className={`w-full flex items-center justify-between p-3.5 rounded-2xl text-left transition-all ${
+                    className={`w-full flex items-center justify-between p-3.5 rounded-2xl text-left transition-all cursor-pointer ${
                       isActive
                         ? 'bg-brand-cyan text-white font-bold shadow-md shadow-brand-cyan/25 translate-x-1'
                         : 'text-white/75 hover:bg-white/10 hover:text-white font-semibold'
@@ -178,7 +256,7 @@ export default function AdminLayout({ initialTab = 'ordini' }: AdminLayoutProps)
               <button
                 type="button"
                 onClick={handleLogout}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 hover:text-rose-200 text-xs font-bold transition-all flex items-center justify-between"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 hover:text-rose-200 text-xs font-bold transition-all flex items-center justify-between cursor-pointer"
               >
                 <div className="flex items-center gap-2">
                   <LogOut className="w-4 h-4" />
