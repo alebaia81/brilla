@@ -1,0 +1,115 @@
+---
+/**
+ * Sezione FAQ Semantica con FAQPage Schema per Local SEO e Google Rich Snippets.
+ * Spiega in dettaglio il funzionamento del servizio "Scegli & Ritira al Bancone".
+ */
+const faqs = [
+  {
+    question: "Come funziona il servizio Scegli & Ritira a Castelnuovo Bocca d'Adda?",
+    answer: "Puoi esplorare il nostro catalogo online (cartoleria, scuola, quotidiani, riviste o articoli regalo), aggiungere i prodotti al carrello e selezionare 'Ritiro in Negozio'. Prepariamo il tuo pacchetto con cura e potrai passare a ritirarlo direttamente al bancone del Brilla Cafè in Via Umberto I, 35 senza fare code.",
+  },
+  {
+    question: "Il ritiro in negozio è gratuito o ci sono costi di commissione?",
+    answer: "Il ritiro in negozio è sempre gratuito al 100%, con zero costi di spedizione o commissione di servizio, indipendentemente dall'importo dell'ordine.",
+  },
+  {
+    question: "In quanto tempo è pronto il mio ordine per il ritiro?",
+    answer: "Per tutti gli articoli disponibili a magazzino, il tuo ordine è pronto in giornata, spesso entro 30–60 minuti dalla conferma. Al momento dell'ordine puoi anche indicare il giorno e la fascia oraria di ritiro che preferisci.",
+  },
+  {
+    question: "Quali sono gli orari di apertura per il ritiro?",
+    answer: "Siamo aperti dal Lunedì al Sabato con orario continuato dalle 06:30 alle 19:30, e la Domenica mattina dalle 07:00 alle 13:00. Puoi passare a ritirare la tua spesa anche la mattina presto prima di andare al lavoro o durante la pausa caffè.",
+  },
+  {
+    question: "Come posso pagare il mio ordine Scegli & Ritira?",
+    answer: "Puoi pagare comodamente online in fase di checkout con PayPal o carta di credito, oppure scegliere di pagare direttamente al bancone al momento del ritiro in contanti, bancomat o POS.",
+  },
+  {
+    question: "Posso richiedere riviste arretrate, libri scolastici o articoli non a catalogo?",
+    answer: "Certamente! Se cerchi un quotidiano specifico, un fumetto da collezione o vuoi ordinare materiale scolastico, puoi scriverci direttamente su WhatsApp: effettuiamo ricerche e prenotazioni su misura.",
+  },
+];
+
+// Schema JSON-LD FAQPage ufficiale Google
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.question,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: f.answer,
+    },
+  })),
+};
+---
+
+<section class="py-16 sm:py-24 bg-white border-t border-brand-dark/10" id="faq-ritiro">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    
+    {/* Intestazione */}
+    <div class="text-center space-y-3 mb-12">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-cyan/10 text-brand-cyan text-xs font-bold uppercase tracking-wider">
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+        <span>Domande Frequenti</span>
+      </div>
+      <h2 class="text-2xl sm:text-3xl font-black text-brand-dark tracking-tight">
+        Tutto quello che c'è da sapere sullo Scegli &amp; Ritira
+      </h2>
+      <p class="text-xs sm:text-sm text-brand-dark/60 max-w-xl mx-auto">
+        Il servizio comodo per residenti e lavoratori di Castelnuovo Bocca d'Adda e della Bassa Lodigiana.
+      </p>
+    </div>
+
+    {/* Lista Domande / Risposte Semantiche */}
+    <div class="space-y-4">
+      {faqs.map((item, idx) => (
+        <details
+          class="group rounded-2xl bg-brand-cream/40 border border-brand-dark/10 p-5 transition-all duration-200 hover:border-brand-amber/40 open:bg-white open:shadow-md"
+        >
+          <summary class="flex items-center justify-between cursor-pointer list-none font-bold text-sm text-brand-dark select-none">
+            <span class="flex items-center gap-3 pr-2">
+              <span class="w-6 h-6 rounded-full bg-brand-cyan/15 text-brand-cyan text-xs font-black flex items-center justify-center flex-shrink-0">
+                {idx + 1}
+              </span>
+              <span>{item.question}</span>
+            </span>
+            <span class="w-6 h-6 rounded-full bg-brand-dark/5 flex items-center justify-center text-brand-dark/50 group-open:rotate-180 transition-transform flex-shrink-0">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </span>
+          </summary>
+          <div class="pt-4 text-xs sm:text-sm text-brand-dark/70 leading-relaxed pl-9">
+            <p>{item.answer}</p>
+          </div>
+        </details>
+      ))}
+    </div>
+
+    {/* Rich Snippet JSON-LD iniettato direttamente nel DOM */}
+    <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+
+    {/* Box di contatto rapido */}
+    <div class="mt-10 p-6 rounded-3xl bg-brand-cream/60 border border-brand-dark/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+      <div>
+        <h3 class="text-sm font-bold text-brand-dark">Hai una richiesta particolare?</h3>
+        <p class="text-xs text-brand-dark/60 mt-0.5">Siamo a tua disposizione anche per prenotazioni scolastiche o riviste speciali.</p>
+      </div>
+      <a
+        href="https://wa.me/393500206743?text=Ciao%20Brilla%20Cafe%E2%80%99,%20ho%20una%20domanda%20sul%20servizio%20Scegli%20e%20Ritira"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all flex items-center gap-2 flex-shrink-0"
+      >
+        <span>Scrivici su WhatsApp</span>
+      </a>
+    </div>
+
+  </div>
+</section>

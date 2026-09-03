@@ -16,28 +16,37 @@ interface Props {
   canonicalURL?: string;
   type?: 'website' | 'article' | 'product';
   schema?: Record<string, any>;
+  breadcrumbs?: Array<{ name: string; url: string }>;
 }
 
 const {
   title = "Brilla Cafe — Cartoleria, Edicola & Bar a Castelnuovo Bocca d'Adda",
   description = "Il tuo negozio e bar di fiducia a Castelnuovo Bocca d'Adda. Articoli scuola, ufficio, quotidiani, riviste, idee regalo e servizio Scegli e Ritira.",
   image = '/logo.jpeg',
+  canonicalURL,
   type = 'website',
   schema,
+  breadcrumbs,
 } = Astro.props;
 
-const siteUrl = 'https://brillacafe.it';
-const fullImageUrl = image.startsWith('http') ? image : `${siteUrl}${image}`;
+const siteUrl = Astro.site ? Astro.site.href.replace(/\/$/, '') : 'https://brillacafe.it';
+const resolvedCanonical = canonicalURL || new URL(Astro.url.pathname, Astro.site || siteUrl).href;
+const fullImageUrl = image.startsWith('http') ? image : `${siteUrl}${image.startsWith('/') ? image : `/${image}`}`;
 
-// Schema JSON-LD LocalBusiness per SEO Locale
+// Schema JSON-LD LocalBusiness & CafeOrCoffeeShop per Local SEO
 const localBusinessSchema = {
   '@context': 'https://schema.org',
-  '@type': 'LocalBusiness',
-  '@id': 'https://brillacafe.it/#localbusiness',
-  name: "Brilla Cafe'",
+  '@type': ['LocalBusiness', 'CafeOrCoffeeShop'],
+  '@id': `${siteUrl}/#localbusiness`,
+  name: "Brilla Cafè",
   legalName: 'Brilla SAS di Bricchi Sara e c.',
-  image: 'https://brillacafe.it/images/logo.png',
+  alternateName: "Brilla Cafe Castelnuovo Bocca d'Adda",
+  image: `${siteUrl}/logo.jpeg`,
   telephone: '+393500206743',
+  url: siteUrl,
+  priceRange: '€',
+  paymentAccepted: 'Cash, Credit Card, PayPal',
+  currenciesAccepted: 'EUR',
   address: {
     '@type': 'PostalAddress',
     streetAddress: 'Via Umberto I, 35',
@@ -47,9 +56,6 @@ const localBusinessSchema = {
     addressCountry: 'IT',
   },
   vatID: 'IT11824030966',
-  priceRange: '€',
-  description: "Bar, edicola, cartoleria e articoli regalo a Castelnuovo Bocca d'Adda. Ordini online con ritiro in negozio o spedizione rapida.",
-  url: 'https://brillacafe.it',
   geo: {
     '@type': 'GeoCoordinates',
     latitude: 45.1167,
@@ -69,7 +75,29 @@ const localBusinessSchema = {
       closes: '13:00',
     },
   ],
+  areaServed: [
+    { '@type': 'AdministrativeArea', name: "Castelnuovo Bocca d'Adda" },
+    { '@type': 'AdministrativeArea', name: "Monticelli d'Ongina" },
+    { '@type': 'AdministrativeArea', name: "Caorso" },
+    { '@type': 'AdministrativeArea', name: "Castelvetro Piacentino" },
+    { '@type': 'AdministrativeArea', name: "Cremona" },
+    { '@type': 'AdministrativeArea', name: "Codogno" },
+    { '@type': 'AdministrativeArea', name: "Bassa Lodigiana" },
+  ],
+  description: "Bar, edicola, cartoleria e articoli regalo a Castelnuovo Bocca d'Adda. Servizio Scegli e Ritira rapido al bancone a zero spese di spedizione.",
 };
+
+// Schema BreadcrumbList se fornito
+const breadcrumbSchema = breadcrumbs && breadcrumbs.length > 0 ? {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: breadcrumbs.map((crumb, idx) => ({
+    '@type': 'ListItem',
+    position: idx + 1,
+    name: crumb.name,
+    item: crumb.url.startsWith('http') ? crumb.url : `${siteUrl}${crumb.url.startsWith('/') ? crumb.url : `/${crumb.url}`}`,
+  })),
+} : null;
 ---
 
 <!DOCTYPE html>
@@ -78,14 +106,18 @@ const localBusinessSchema = {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
+  {/* Canonical Tag */}
+  <link rel="canonical" href={resolvedCanonical} />
+
   {/* SEO Core */}
   <title>{title}</title>
   <meta name="description" content={description} />
   <meta name="robots" content="index, follow" />
-  <meta name="keywords" content="Cartoleria Castelnuovo Bocca d'Adda, Edicola Lodi, Riviste online, Bar Brilla Cafe, Quaderni scuola, Idee regalo artigianali" />
+  <meta name="keywords" content="Cartoleria Castelnuovo Bocca d'Adda, Edicola Lodi, Riviste online, Bar Brilla Cafe, Quaderni scuola, Idee regalo artigianali, Scegli e Ritira Castelnuovo" />
 
   {/* Open Graph / Facebook */}
   <meta property="og:type" content={type} />
+  <meta property="og:url" content={resolvedCanonical} />
   <meta property="og:title" content={title} />
   <meta property="og:description" content={description} />
   <meta property="og:image" content={fullImageUrl} />
@@ -116,6 +148,11 @@ const localBusinessSchema = {
   {/* JSON-LD LocalBusiness */}
   <script type="application/ld+json" set:html={JSON.stringify(localBusinessSchema)} />
   
+  {/* JSON-LD BreadcrumbList */}
+  {breadcrumbSchema && (
+    <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+  )}
+
   {/* Extra Schema se fornito */}
   {schema && (
     <script type="application/ld+json" set:html={JSON.stringify(schema)} />

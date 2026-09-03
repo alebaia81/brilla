@@ -233,7 +233,8 @@ export default function ProductManager() {
                             role="switch"
                             aria-checked={isOnline}
                             onClick={() => handleToggleOnline(p)}
-                            className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-cyan focus:ring-offset-2 ${
+                            aria-label={`Imposta visibilità online per ${p.nome}`}
+                            className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#2C3E50] ${
                               isOnline ? 'bg-emerald-600' : 'bg-neutral-300'
                             }`}
                             title={
@@ -251,7 +252,7 @@ export default function ProductManager() {
                               }`}
                             />
                           </button>
-                          <span className={`text-[10px] font-bold min-w-[42px] text-left ${isOnline ? 'text-emerald-700' : 'text-neutral-400'}`}>
+                          <span className={`text-[10px] font-bold min-w-[42px] text-left ${isOnline ? 'text-emerald-800' : 'text-neutral-500'}`}>
                             {isOnline ? 'Online' : 'Off'}
                           </span>
                         </div>
@@ -262,18 +263,18 @@ export default function ProductManager() {
                           <button
                             type="button"
                             onClick={() => setEditingProduct(p)}
-                            className="p-2 rounded-lg bg-brand-cream hover:bg-brand-dark hover:text-white transition-colors text-brand-dark"
-                            aria-label="Modifica prodotto"
+                            className="p-2 rounded-lg bg-brand-cream hover:bg-brand-dark hover:text-white transition-colors text-brand-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-[#2C3E50] cursor-pointer"
+                            aria-label={`Modifica articolo ${p.nome}`}
                           >
-                            <Edit2 className="w-3.5 h-3.5" />
+                            <Edit2 className="w-3.5 h-3.5" aria-hidden="true" />
                           </button>
                           <button
                             type="button"
                             onClick={() => handleDelete(p.id, p.nome)}
-                            className="p-2 rounded-lg bg-rose-50 hover:bg-rose-600 hover:text-white transition-colors text-rose-700"
-                            aria-label="Elimina prodotto"
+                            className="p-2 rounded-lg bg-rose-50 hover:bg-rose-600 hover:text-white transition-colors text-rose-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-rose-600 cursor-pointer"
+                            aria-label={`Elimina articolo ${p.nome}`}
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
                           </button>
                         </div>
                       </td>

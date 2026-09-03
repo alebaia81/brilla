@@ -13,7 +13,7 @@ export default function CartIcon() {
       type="button"
       onClick={openCart}
       aria-label={`Visualizza carrello, ${totalQuantity} articoli presenti`}
-      className="relative p-2.5 rounded-full text-brand-dark hover:text-brand-amber hover:bg-brand-dark/5 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-amber cursor-pointer"
+      className="relative p-2.5 rounded-full text-brand-dark hover:text-brand-amber hover:bg-brand-dark/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#2C3E50] cursor-pointer"
     >
       <ShoppingBag className="w-6 h-6 stroke-[1.8]" />
       {totalQuantity > 0 && (

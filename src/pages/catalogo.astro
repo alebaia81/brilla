@@ -18,12 +18,18 @@ const catalogSchema = {
   description: 'Articoli di cartoleria, scuola, edicola e idee regalo a Castelnuovo Bocca d\'Adda',
   url: 'https://brillacafe.it/catalogo',
 };
+
+const breadcrumbs = [
+  { name: 'Home', url: '/' },
+  { name: 'Catalogo Prodotti', url: '/catalogo' },
+];
 ---
 
 <Layout
   title="Catalogo Prodotti — Brilla Cafe (Cartoleria, Edicola & Bar)"
   description="Scopri il catalogo completo di Brilla Cafe: penne, quaderni, zaini, riviste in edicola, quotidiani, tazze regalo e gadget. Ritiro a Castelnuovo Bocca d'Adda o spedizione."
   schema={catalogSchema}
+  breadcrumbs={breadcrumbs}
 >
   <CatalogPage client:load initialTipo={initialTipo} />
 </Layout>

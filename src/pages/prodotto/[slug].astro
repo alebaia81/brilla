@@ -1,61 +1,111 @@
 ---
 /**
  * Dynamic Route SSG per la scheda singolo prodotto.
- * Pre-genera le rotte dei prodotti noti a build time e idrata ProductDetail via client:load.
+ * Pre-genera le rotte dei prodotti a build time e passa i dati completi per SEO e OpenGraph.
  */
 import Layout from '../../layouts/Layout.astro';
 import ProductDetail from '../../components/prodotto/ProductDetail';
 import { supabase } from '../../lib/supabase';
+import { type Product } from '../../components/catalogo/ProductCard';
 
 export async function getStaticPaths() {
-  const defaultSlugs = [
-    { params: { slug: 'set-10-penne-sfera-retrattili' } },
-    { params: { slug: 'quadernone-maxi-a4-righe-100g' } },
-    { params: { slug: 'evidenziatori-pastel-edition-6pz' } },
-    { params: { slug: 'zaino-scuola-viaggio-idrorepellente' } },
-    { params: { slug: 'national-geographic-italia-mese' } },
-    { params: { slug: 'la-gazzetta-dello-sport-mag' } },
-    { params: { slug: 'topolino-fumetto-da-collezione' } },
-    { params: { slug: 'tazza-mug-artigianale-brilla' } },
-    { params: { slug: 'confezione-cioccolatini-praline-250g' } },
-    { params: { slug: 'bottiglia-termica-inox-500ml-brilla' } },
+  const defaultFallbackProducts = [
+    { slug: 'set-10-penne-sfera-retrattili', nome: 'Set 10 Penne a Sfera Retrattili Soft Touch', marca: 'BIC', tipo_prodotto: 'cartoleria', prezzo: 6.50, immagine_url: 'https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=800&auto=format&fit=crop&q=80', descrizione: 'Set professionale a sfera scorrevole con impugnatura soft touch gommata.' },
+    { slug: 'quadernone-maxi-a4-righe-100g', nome: 'Quadernone Maxi A4 a Righe 100g', marca: 'Pigna', tipo_prodotto: 'cartoleria', prezzo: 2.80, immagine_url: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800&auto=format&fit=crop&q=80', descrizione: 'Quadernone resistente con carta pregiata da 100g antispanciamento.' },
+    { slug: 'evidenziatori-pastel-edition-6pz', nome: 'Evidenziatori Pastel Edition (Set 6pz)', marca: 'Stabilo', tipo_prodotto: 'cartoleria', prezzo: 8.90, immagine_url: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800&auto=format&fit=crop&q=80', descrizione: 'Tonalità pastello delicate per studio, appunti e bullet journal.' },
+    { slug: 'zaino-scuola-viaggio-idrorepellente', nome: 'Zaino Scuola & Viaggio Idrorepellente', marca: 'Invicta', tipo_prodotto: 'cartoleria', prezzo: 49.90, immagine_url: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800&auto=format&fit=crop&q=80', descrizione: 'Schienale ergonomico traspirante e scomparto imbottito per PC.' },
+    { slug: 'national-geographic-italia-mese', nome: 'National Geographic Italia - Edizione Mese', marca: 'Gedi', tipo_prodotto: 'edicola', prezzo: 5.90, immagine_url: 'https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=800&auto=format&fit=crop&q=80', descrizione: 'Reportage fotografici esclusivi, natura, scienza e culture dal mondo.' },
+    { slug: 'la-gazzetta-dello-sport-mag', nome: 'La Gazzetta dello Sport Magazine Speciale', marca: 'RCS MediaGroup', tipo_prodotto: 'edicola', prezzo: 4.50, immagine_url: 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&auto=format&fit=crop&q=80', descrizione: 'Speciale approfondimenti sportivi con interviste e analisi tattiche.' },
+    { slug: 'topolino-fumetto-da-collezione', nome: 'Topolino - Fumetto da Collezione N. 3500', marca: 'Panini Comics', tipo_prodotto: 'edicola', prezzo: 3.50, immagine_url: 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=800&auto=format&fit=crop&q=80', descrizione: 'Il fumetto settimanale più amato d\'Italia con storie a fumetti inedite.' },
+    { slug: 'tazza-mug-artigianale-brilla', nome: 'Tazza Mug Artigianale "Brilla Castelnuovo"', marca: 'Brilla Cafe', tipo_prodotto: 'bar_gift', prezzo: 11.50, immagine_url: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=800&auto=format&fit=crop&q=80', descrizione: 'Tazza in ceramica smaltata artigianale con grafica esclusiva Brilla Cafè.' },
+    { slug: 'confezione-cioccolatini-praline-250g', nome: 'Confezione Cioccolatini & Praline Fine 250g', marca: 'Venchi', tipo_prodotto: 'bar_gift', prezzo: 14.00, immagine_url: 'https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=800&auto=format&fit=crop&q=80', descrizione: 'Assortimento di praline al cioccolato fondente e al latte piemontesi.' },
+    { slug: 'bottiglia-termica-inox-500ml-brilla', nome: 'Bottiglia Termica Inox 500ml Brilla Edition', marca: '24Bottles', tipo_prodotto: 'bar_gift', prezzo: 18.90, immagine_url: 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=800&auto=format&fit=crop&q=80', descrizione: 'Borraccia termica a doppia parete in acciaio inox per bevande calde o fredde.' },
   ];
 
   try {
-    const { data } = await supabase.from('prodotti').select('slug');
+    const { data } = await supabase.from('prodotti').select('*');
     if (data && data.length > 0) {
-      return data.map((p) => ({ params: { slug: p.slug } }));
+      return data.map((p) => ({
+        params: { slug: p.slug },
+        props: { product: p as Product },
+      }));
     }
   } catch (e) {
     // fallback
   }
 
-  return defaultSlugs;
+  return defaultFallbackProducts.map((p) => ({
+    params: { slug: p.slug },
+    props: { product: p as unknown as Product },
+  }));
 }
 
 const { slug } = Astro.params;
+const { product } = Astro.props as { product?: Product };
 
-// Schema JSON-LD Product per SEO
+const prodName = product?.nome || (slug ? slug.replace(/-/g, ' ') : 'Prodotto');
+const prodMarca = product?.marca ? ` - ${product.marca}` : '';
+const prodDesc = product?.descrizione
+  ? (product.descrizione.length > 155 ? `${product.descrizione.slice(0, 152)}...` : product.descrizione)
+  : `Acquista ${prodName}${prodMarca} da Brilla Cafè. Ordina online con ritiro rapido gratuito a Castelnuovo Bocca d'Adda o spedizione a domicilio.`;
+
+const activePrice = product?.prezzo_scontato && product.prezzo_scontato > 0 
+  ? product.prezzo_scontato 
+  : (product?.sconto_percentuale && product.sconto_percentuale > 0 && product.prezzo
+      ? Number((product.prezzo * (1 - product.sconto_percentuale / 100)).toFixed(2))
+      : (product?.prezzo || 0));
+
+const prodImg = product?.immagine_url || '/logo.jpeg';
+const isAvailable = product?.disponibile !== false && (product?.quantita_disponibile == null || product.quantita_disponibile > 0);
+
+// Schema JSON-LD Product per Rich Snippets di Google
 const productSchema = {
   '@context': 'https://schema.org',
   '@type': 'Product',
-  name: slug?.replace(/-/g, ' ').toUpperCase(),
+  name: prodName,
+  description: prodDesc,
+  image: prodImg.startsWith('http') ? prodImg : `https://brillacafe.it${prodImg}`,
+  sku: (product as any)?.sku || slug,
+  brand: product?.marca ? {
+    '@type': 'Brand',
+    name: product.marca,
+  } : undefined,
   offers: {
     '@type': 'Offer',
+    price: activePrice.toFixed(2),
     priceCurrency: 'EUR',
-    availability: 'https://schema.org/InStock',
+    availability: isAvailable ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+    itemCondition: 'https://schema.org/NewCondition',
+    url: `https://brillacafe.it/prodotto/${slug}`,
     seller: {
       '@type': 'LocalBusiness',
-      name: 'Brilla Cafe',
+      name: "Brilla Cafè",
+      telephone: '+393500206743',
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: 'Via Umberto I, 35',
+        addressLocality: "Castelnuovo Bocca d'Adda",
+        postalCode: '26843',
+        addressRegion: 'LO',
+        addressCountry: 'IT'
+      }
     },
   },
 };
+
+const breadcrumbs = [
+  { name: 'Home', url: '/' },
+  { name: 'Catalogo', url: '/catalogo' },
+  { name: prodName, url: `/prodotto/${slug}` },
+];
 ---
 
 <Layout
-  title={`${slug ? slug.replace(/-/g, ' ') : 'Prodotto'} — Brilla Cafe Shop`}
-  description="Dettagli prodotto, disponibilità e opzioni di ritiro in negozio a Castelnuovo Bocca d'Adda o spedizione a domicilio."
+  title={`${prodName} | Cartoleria & Bar Brilla Cafè`}
+  description={prodDesc}
+  image={prodImg}
   schema={productSchema}
+  breadcrumbs={breadcrumbs}
   type="product"
 >
   <ProductDetail client:load slug={slug || ''} />

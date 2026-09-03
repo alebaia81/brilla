@@ -73,7 +73,11 @@ export default function ProductCard({ product }: ProductCardProps) {
     <div className={`group relative rounded-3xl bg-white border border-brand-dark/10 hover:border-brand-amber/40 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden ${isOutOfStock ? 'opacity-85' : ''}`}>
       
       {/* Container Immagine con Adattamento Completo & Sfondo Neutro */}
-      <a href={`/prodotto/${product.slug}`} className="block relative aspect-square bg-stone-100/70 overflow-hidden p-3 flex items-center justify-center">
+      <a
+        href={`/prodotto/${product.slug}`}
+        className="block relative aspect-square bg-stone-100/70 overflow-hidden p-3 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#2C3E50]"
+        aria-label={`Visualizza scheda di ${product.nome}`}
+      >
         <img
           key={`${product.id}-${imgSrc}`}
           src={imgSrc}
@@ -106,7 +110,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* Quick View overlay */}
         <div className="absolute inset-0 bg-brand-dark/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
           <span className="p-3 bg-white/90 text-brand-dark rounded-full shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-transform">
-            <Eye className="w-5 h-5" />
+            <Eye className="w-5 h-5" aria-hidden="true" />
           </span>
         </div>
       </a>
@@ -115,19 +119,22 @@ export default function ProductCard({ product }: ProductCardProps) {
       <div className="p-5 flex-1 flex flex-col justify-between">
         <div>
           {product.marca && (
-            <span className="text-[11px] font-semibold tracking-wider text-brand-dark/50 uppercase block mb-1">
+            <span className="text-[11px] font-semibold tracking-wider text-brand-dark/60 uppercase block mb-1">
               {product.marca}
             </span>
           )}
 
-          <a href={`/prodotto/${product.slug}`} className="block group-hover:text-brand-amber transition-colors">
+          <a
+            href={`/prodotto/${product.slug}`}
+            className="block group-hover:text-brand-amber transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2C3E50] rounded-sm"
+          >
             <h3 className="text-sm font-bold text-brand-dark line-clamp-2 leading-snug">
               {product.nome}
             </h3>
           </a>
 
           {product.descrizione && (
-            <p className="text-xs text-brand-dark/60 line-clamp-2 mt-1.5 leading-relaxed">
+            <p className="text-xs text-brand-dark/70 line-clamp-2 mt-1.5 leading-relaxed">
               {product.descrizione}
             </p>
           )}
@@ -141,21 +148,21 @@ export default function ProductCard({ product }: ProductCardProps) {
                 {formatPrice(activePrice)}
               </span>
               {hasDiscount && (
-                <span className="text-xs text-brand-dark/40 line-through">
+                <span className="text-xs text-brand-dark/50 line-through">
                   {formatPrice(product.prezzo)}
                 </span>
               )}
             </div>
             {isOutOfStock ? (
-              <span className="text-[10px] text-neutral-500 font-bold block">
+              <span className="text-[10px] text-neutral-600 font-bold block">
                 Al momento non disponibile
               </span>
             ) : product.periodicita ? (
-              <span className="text-[10px] text-emerald-700 font-medium block">
+              <span className="text-[10px] text-emerald-800 font-semibold block">
                 Uscita {product.periodicita}
               </span>
             ) : isLowStock ? (
-              <span className="text-[10px] text-amber-700 font-bold block">
+              <span className="text-[10px] text-amber-800 font-bold block">
                 Ultimi pezzi a magazzino
               </span>
             ) : null}
@@ -165,9 +172,9 @@ export default function ProductCard({ product }: ProductCardProps) {
             type="button"
             onClick={handleAddToCart}
             disabled={isOutOfStock}
-            aria-label={isOutOfStock ? `${product.nome} è esaurito` : `Aggiungi ${product.nome} al carrello`}
+            aria-label={isOutOfStock ? `${product.nome} è attualmente esaurito` : `Aggiungi ${product.nome} al carrello`}
             title={isOutOfStock ? 'Prodotto esaurito' : 'Aggiungi al carrello'}
-            className={`p-3 rounded-2xl font-semibold transition-all duration-200 flex items-center justify-center ${
+            className={`p-3 rounded-2xl font-semibold transition-all duration-200 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#2C3E50] ${
               isOutOfStock
                 ? 'bg-neutral-100 text-neutral-400 border border-neutral-200 cursor-not-allowed'
                 : added
@@ -175,7 +182,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                 : 'bg-brand-dark text-brand-cream hover:bg-brand-amber hover:text-white shadow-sm hover:shadow-md active:scale-95 cursor-pointer'
             }`}
           >
-            {added ? <Check className="w-4 h-4" /> : <ShoppingBag className="w-4 h-4" />}
+            {added ? <Check className="w-4 h-4" aria-hidden="true" /> : <ShoppingBag className="w-4 h-4" aria-hidden="true" />}
           </button>
         </div>
 

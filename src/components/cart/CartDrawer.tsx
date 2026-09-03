@@ -10,10 +10,16 @@ export default function CartDrawer() {
   const isOpen = useStore($isCartOpen);
   const totalQuantity = useStore($totalQuantity);
 
-  // Blocca lo scroll del body quando il drawer è aperto
+  const closeButtonRef = React.useRef<HTMLButtonElement>(null);
+
+  // Blocca lo scroll del body quando il drawer è aperto e porta il focus al pulsante chiudi
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+      const timer = setTimeout(() => {
+        closeButtonRef.current?.focus();
+      }, 50);
+      return () => clearTimeout(timer);
     } else {
       document.body.style.overflow = '';
     }
@@ -41,6 +47,7 @@ export default function CartDrawer() {
       <div
         className="fixed inset-0 bg-brand-dark/40 backdrop-blur-xs transition-opacity duration-300 animate-fadeIn"
         onClick={closeCart}
+        aria-hidden="true"
       />
 
       <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
@@ -49,18 +56,19 @@ export default function CartDrawer() {
           {/* Header Drawer */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-brand-dark/10 bg-brand-cream/50">
             <div className="flex items-center gap-2">
-              <ShoppingBag className="w-5 h-5 text-brand-amber" />
+              <ShoppingBag className="w-5 h-5 text-brand-amber" aria-hidden="true" />
               <h3 className="text-lg font-bold text-brand-dark">
                 Il tuo Carrello ({totalQuantity})
               </h3>
             </div>
             <button
+              ref={closeButtonRef}
               type="button"
               onClick={closeCart}
-              className="p-2 text-brand-dark/50 hover:text-brand-dark rounded-full hover:bg-brand-dark/5 transition-colors"
-              aria-label="Chiudi carrello"
+              className="p-2 text-brand-dark/60 hover:text-brand-dark rounded-full hover:bg-brand-dark/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#2C3E50] cursor-pointer"
+              aria-label="Chiudi carrello della spesa"
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5" aria-hidden="true" />
             </button>
           </div>
 

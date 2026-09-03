@@ -46,12 +46,12 @@ export default function CartItem({ item }: CartItemProps) {
           <button
             type="button"
             onClick={() => updateItemQuantity(item.id, -1)}
-            className="p-1 text-brand-dark/70 hover:bg-brand-dark/10 hover:text-brand-dark transition-colors cursor-pointer"
-            aria-label="Riduci quantità"
+            className="p-1 text-brand-dark/80 hover:bg-brand-dark/10 hover:text-brand-dark transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2C3E50]"
+            aria-label={`Riduci quantità di ${item.nome}`}
           >
-            <Minus className="w-3.5 h-3.5" />
+            <Minus className="w-3.5 h-3.5" aria-hidden="true" />
           </button>
-          <span className="px-2 text-xs font-semibold text-brand-dark min-w-[20px] text-center">
+          <span className="px-2 text-xs font-bold text-brand-dark min-w-[20px] text-center" aria-live="polite">
             {item.quantita}
           </span>
           {(() => {
@@ -61,21 +61,21 @@ export default function CartItem({ item }: CartItemProps) {
                 type="button"
                 disabled={isMaxReached}
                 onClick={() => updateItemQuantity(item.id, 1)}
-                className={`p-1 transition-colors ${
+                className={`p-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2C3E50] ${
                   isMaxReached
                     ? 'text-brand-dark/20 cursor-not-allowed bg-brand-cream/60'
-                    : 'text-brand-dark/70 hover:bg-brand-dark/10 hover:text-brand-dark cursor-pointer'
+                    : 'text-brand-dark/80 hover:bg-brand-dark/10 hover:text-brand-dark cursor-pointer'
                 }`}
                 title={isMaxReached ? `Massimo disponibile a magazzino (${item.quantita_disponibile} pz)` : 'Aumenta quantità'}
-                aria-label="Aumenta quantità"
+                aria-label={`Aumenta quantità di ${item.nome}`}
               >
-                <Plus className="w-3.5 h-3.5" />
+                <Plus className="w-3.5 h-3.5" aria-hidden="true" />
               </button>
             );
           })()}
         </div>
         {item.quantita_disponibile != null && item.quantita >= item.quantita_disponibile && (
-          <span className="text-[9px] font-bold text-amber-800 bg-amber-100/70 px-1 rounded">
+          <span className="text-[9px] font-extrabold text-amber-950 bg-amber-200/90 px-1.5 py-0.5 rounded">
             Max scorte ({item.quantita_disponibile})
           </span>
         )}
@@ -85,10 +85,10 @@ export default function CartItem({ item }: CartItemProps) {
       <button
         type="button"
         onClick={() => removeFromCart(item.id)}
-        className="p-1.5 text-brand-dark/40 hover:text-red-600 transition-colors"
-        aria-label="Rimuovi dal carrello"
+        className="p-1.5 text-brand-dark/50 hover:text-red-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-600 rounded-lg cursor-pointer"
+        aria-label={`Rimuovi ${item.nome} dal carrello`}
       >
-        <Trash2 className="w-4 h-4" />
+        <Trash2 className="w-4 h-4" aria-hidden="true" />
       </button>
     </div>
   );

@@ -17,10 +17,10 @@
       {/* Testi e CTA */}
       <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
         
-        {/* Badge Locale */}
+        {/* Badge Locale CRO */}
         <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-amber/15 border border-brand-amber/30 text-brand-dark text-xs font-bold tracking-wide shadow-2xs">
-          <span class="w-2 h-2 rounded-full bg-brand-amber animate-ping"></span>
-          <span>Castelnuovo Bocca d'Adda (LO)</span>
+          <span class="w-2 h-2 rounded-full bg-brand-amber animate-ping" aria-hidden="true"></span>
+          <span>Castelnuovo Bocca d'Adda (LO) · Servizio Scegli &amp; Ritira</span>
         </div>
 
         {/* Titolo principale ad alto impatto */}
@@ -28,29 +28,29 @@
           Il tuo shop di fiducia per <span class="text-brand-amber">Cartoleria</span>, <span class="text-emerald-700">Edicola</span> &amp; <span class="text-rose-600">Idee Regalo</span>.
         </h1>
 
-        <div class="space-y-2 max-w-2xl mx-auto lg:mx-0">
+        <div class="space-y-3 max-w-2xl mx-auto lg:mx-0">
           <p class="text-base sm:text-lg text-brand-dark font-bold leading-snug">
-            Bar, edicola, cartoleria e shop online: la qualità e la familiarità di sempre, ora comodamente anche online.
+            Ordina online in 30 secondi e ritira subito al bancone a Castelnuovo Bocca d'Adda, senza costi di spedizione.
           </p>
           <p class="text-sm sm:text-base text-brand-dark/75 leading-relaxed">
-            Ordina comodamente dal tuo smartphone con la possibilità di <strong>ritirare l'ordine direttamente in negozio a zero spese</strong> oppure riceverlo a casa con spedizione rapida.
+            La comodità del digitale unita all'accoglienza di sempre: un caffè al volo e il tuo ordine di scuola, ufficio o riviste già impacchettato e pronto da ritirare al bancone.
           </p>
         </div>
 
-        {/* CTA Buttons */}
+        {/* CTA Buttons orientati alla conversione (CRO) */}
         <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
           <a
             href="/catalogo"
-            class="w-full sm:w-auto px-8 py-4 bg-brand-cyan hover:bg-brand-cyan/90 text-white text-sm font-bold rounded-2xl shadow-lg shadow-brand-cyan/25 hover:shadow-xl transition-all text-center"
+            class="w-full sm:w-auto px-8 py-4 bg-brand-cyan hover:bg-brand-cyan/90 text-white text-sm font-bold rounded-2xl shadow-lg shadow-brand-cyan/25 hover:shadow-xl transition-all text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#2C3E50]"
           >
-            📚 Esplora Tutto il Catalogo
+            ⚡ Ordina e Ritira al Banco
           </a>
 
           <a
-            href="#categorie"
-            class="w-full sm:w-auto px-6 py-4 bg-white hover:bg-brand-dark/5 text-brand-dark border border-brand-dark/15 text-sm font-semibold rounded-2xl transition-all text-center"
+            href="/catalogo?tipo=cartoleria"
+            class="w-full sm:w-auto px-6 py-4 bg-white hover:bg-brand-dark/5 text-brand-dark border border-brand-dark/15 text-sm font-bold rounded-2xl transition-all text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#2C3E50]"
           >
-            Esplora le Categorie ↓
+            🎒 Esplora il Reparto Scuola
           </a>
         </div>
 
