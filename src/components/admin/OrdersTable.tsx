@@ -12,8 +12,8 @@ export default function OrdersTable() {
   const [searchTerm, setSearchTerm] = useState('');
   const [newOrderBanner, setNewOrderBanner] = useState<Order | null>(null);
 
-  const loadOrders = async () => {
-    setLoading(true);
+  const loadOrders = async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const { data, error } = await supabase
         .from('ordini')
@@ -29,35 +29,47 @@ export default function OrdersTable() {
     } catch (err) {
       console.error('Errore nel caricamento ordini:', err);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadOrders(); // Fetch iniziale
+    // Fetch iniziale
+    loadOrders();
 
+    // Realtime Channel
     const channel = supabase
-      .channel('admin-ordini-realtime')
+      .channel('schema-db-changes')
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'ordini' },
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'ordini',
+        },
         (payload) => {
-          console.log('Nuovo ordine ricevuto in tempo reale:', payload.new);
+          console.log('⚡ Nuovo ordine Realtime intercettato:', payload.new);
           const newOrder = payload.new as Order;
-          // 1. Aggiungi il nuovo ordine in cima alla lista ordini evitando duplicati
           setOrders((prev) => {
             const exists = prev.some((o) => o.id === newOrder.id);
             if (exists) return prev;
             return [newOrder, ...prev];
           });
-          // 2. Mostra il banner di notifica
           setNewOrderBanner(newOrder);
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('📡 Realtime status:', status);
+      });
+
+    // Fallback polling di sicurezza ogni 15 secondi (non blocca la UI)
+    const interval = setInterval(() => {
+      loadOrders(true); // silent refresh
+    }, 15000);
 
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(interval);
     };
   }, []);
 
