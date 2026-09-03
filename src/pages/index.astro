@@ -19,17 +19,17 @@ import AboutSection from '../components/home/AboutSection.astro';
     {/* 1. Hero Section con presentazione */}
     <HeroSection />
 
-    {/* 2. Recensioni Google Ufficiali (4.7 / 5) */}
+    {/* 2. Ultime Novità & Prodotti in Evidenza (React Island) */}
+    <FeaturedProducts client:load />
+
+    {/* 3. Recensioni Google Ufficiali (4.7 / 5) */}
     <GoogleReviews />
 
-    {/* 3. Sezione Chi Siamo Ufficiale */}
+    {/* 4. Sezione Chi Siamo Ufficiale */}
     <AboutSection />
 
-    {/* 4. Le Nostre Categorie del Negozio */}
+    {/* 5. Le Nostre Categorie del Negozio */}
     <CategoryShowcase />
-
-    {/* 5. Prodotti in Evidenza (React Island) */}
-    <FeaturedProducts client:visible />
 
     {/* 4. Banner Scegli e Ritira & Assistenza Locale */}
     <section class="py-16 bg-white border-t border-brand-dark/10">

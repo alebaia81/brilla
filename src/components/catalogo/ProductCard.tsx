@@ -62,17 +62,17 @@ export default function ProductCard({ product }: ProductCardProps) {
   return (
     <div className={`group relative rounded-3xl bg-white border border-brand-dark/10 hover:border-brand-amber/40 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden ${isOutOfStock ? 'opacity-85' : ''}`}>
       
-      {/* Container Immagine */}
-      <a href={`/prodotto/${product.slug}`} className="block relative aspect-square bg-brand-cream/50 overflow-hidden">
+      {/* Container Immagine con Adattamento Completo */}
+      <a href={`/prodotto/${product.slug}`} className="block relative aspect-square bg-brand-cream/30 overflow-hidden p-3 flex items-center justify-center">
         <img
           src={product.immagine_url || 'https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=600&auto=format&fit=crop&q=80'}
           alt={product.nome}
-          className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${isOutOfStock ? 'grayscale-[30%]' : ''}`}
+          className={`w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 drop-shadow-xs ${isOutOfStock ? 'grayscale-[30%]' : ''}`}
           loading="lazy"
         />
 
         {/* Badges in sovrimpressione */}
-        <div className="absolute top-3 left-3 flex flex-col gap-1.5 items-start">
+        <div className="absolute top-3 left-3 flex flex-col gap-1.5 items-start z-10 pointer-events-none">
           <CategoryBadge tipo={product.tipo_prodotto} />
           
           {hasDiscount && !isOutOfStock && (

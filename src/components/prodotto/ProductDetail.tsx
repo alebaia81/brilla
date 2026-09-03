@@ -316,15 +316,15 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
         
         {/* Colonna Sinistra: Immagine Grande */}
         <div className="lg:col-span-6">
-          <div className="relative aspect-square rounded-3xl bg-brand-cream/40 border border-brand-dark/10 overflow-hidden shadow-inner">
+          <div className="relative aspect-square rounded-3xl bg-brand-cream/30 border border-brand-dark/10 overflow-hidden shadow-inner p-6 sm:p-8 flex items-center justify-center">
             <img
               src={product.immagine_url || 'https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=800&auto=format&fit=crop&q=80'}
               alt={product.nome}
-              className={`w-full h-full object-cover ${isOutOfStock ? 'grayscale-[30%]' : ''}`}
+              className={`max-w-full max-h-full object-contain drop-shadow-md ${isOutOfStock ? 'grayscale-[30%]' : ''}`}
               loading="eager"
             />
             
-            <div className="absolute top-4 left-4 flex flex-col gap-2">
+            <div className="absolute top-4 left-4 flex flex-col gap-2 z-10 pointer-events-none">
               <CategoryBadge tipo={product.tipo_prodotto} className="text-xs py-1 px-3" />
               {Boolean(hasDiscount && !isOutOfStock) && (
                 <span className="px-2.5 py-1 rounded-full text-xs font-bold text-white bg-rose-600 shadow-sm self-start">
