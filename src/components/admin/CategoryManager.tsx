@@ -4,19 +4,21 @@ import { Plus, Edit2, Trash2, Save, X, Tag } from 'lucide-react';
 import CategoryBadge from '../catalogo/CategoryBadge';
 
 interface Category {
-  id: number;
+  id: string | number;
   nome: string;
   slug: string;
-  tipo: string;
+  tipo_categoria?: string;
+  tipo?: string;
   descrizione?: string | null;
-  colore_badge?: string | null;
-  ordine: number;
+  ordine?: number;
+  icona?: string | null;
 }
 
 export default function CategoryManager() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [editingCat, setEditingCat] = useState<Category | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const [nome, setNome] = useState('');
   const [slug, setSlug] = useState('');
@@ -25,12 +27,24 @@ export default function CategoryManager() {
 
   const loadCategories = async () => {
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('categorie')
         .select('*')
         .order('ordine', { ascending: true });
 
-      if (data) setCategories(data as Category[]);
+      if (error) {
+        console.error('Errore nel caricamento categorie:', error);
+        return;
+      }
+
+      if (data) {
+        const mapped = (data as any[]).map((c) => ({
+          ...c,
+          tipo: c.tipo_categoria || c.tipo || 'cartoleria',
+          tipo_categoria: c.tipo_categoria || c.tipo || 'cartoleria',
+        }));
+        setCategories(mapped);
+      }
     } catch (e) {
       console.error('Errore nel caricamento categorie:', e);
     }
@@ -44,7 +58,7 @@ export default function CategoryManager() {
     setEditingCat(cat);
     setNome(cat.nome);
     setSlug(cat.slug);
-    setTipo(cat.tipo);
+    setTipo(cat.tipo_categoria || cat.tipo || 'cartoleria');
     setDescrizione(cat.descrizione || '');
     setIsCreating(false);
   };
@@ -60,41 +74,96 @@ export default function CategoryManager() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nome.trim()) return;
+    if (!nome.trim()) {
+      alert('Inserisci il nome della categoria');
+      return;
+    }
 
-    let badgeColor = 'badge-cartoleria';
-    if (tipo === 'edicola') badgeColor = 'badge-edicola';
-    if (tipo === 'bar_gift') badgeColor = 'badge-gift';
+    setSaving(true);
+
+    const cleanSlug = slug.trim() || nome.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 
     const payload = {
       nome: nome.trim(),
-      slug: slug.trim() || nome.toLowerCase().replace(/\s+/g, '-'),
-      tipo,
-      descrizione: descrizione.trim(),
-      colore_badge: badgeColor,
+      slug: cleanSlug,
+      tipo_categoria: tipo, // Valori ammessi: 'cartoleria' | 'edicola' | 'bar_gift'
+      descrizione: descrizione.trim() || null,
     };
 
     try {
       if (editingCat) {
-        await supabase.from('categorie').update(payload).eq('id', editingCat.id);
+        const { data, error } = await supabase
+          .from('categorie')
+          .update(payload)
+          .eq('id', editingCat.id)
+          .select()
+          .single();
+
+        if (error) {
+          console.error('ERRORE MODIFICA CATEGORIA:', error);
+          alert(`Errore modifica: ${error.message}`);
+          setSaving(false);
+          return;
+        }
+
+        if (data) {
+          const updated: Category = {
+            ...data,
+            tipo: data.tipo_categoria || tipo,
+            tipo_categoria: data.tipo_categoria || tipo,
+          };
+          setCategories((prev) => prev.map((c) => (c.id === editingCat.id ? updated : c)));
+        }
       } else {
-        await supabase.from('categorie').insert(payload);
+        const { data, error } = await supabase
+          .from('categorie')
+          .insert([payload])
+          .select()
+          .single();
+
+        if (error) {
+          console.error('ERRORE CREAZIONE CATEGORIA:', error);
+          alert(`Errore creazione: ${error.message}`);
+          setSaving(false);
+          return;
+        }
+
+        if (data) {
+          const newCat: Category = {
+            ...data,
+            tipo: data.tipo_categoria || tipo,
+            tipo_categoria: data.tipo_categoria || tipo,
+          };
+          setCategories((prev) => [...prev, newCat]);
+        }
       }
+
       setIsCreating(false);
       setEditingCat(null);
-      loadCategories();
+      setNome('');
+      setSlug('');
+      setTipo('cartoleria');
+      setDescrizione('');
     } catch (err: any) {
-      alert('Errore: ' + err.message);
+      console.error('Eccezione salvataggio categoria:', err);
+      alert('Errore: ' + (err.message || 'Si è verificato un errore'));
+    } finally {
+      setSaving(false);
     }
   };
 
-  const handleDelete = async (id: number, catName: string) => {
-    if (!window.confirm(`Eliminare la categoria "${catName}"? Attenzione: i prodotti associati potrebbero essere cancellati in cascata.`)) {
+  const handleDelete = async (id: string | number, catName: string) => {
+    if (!window.confirm(`Eliminare la categoria "${catName}"? Attenzione: i prodotti associati potrebbero non avere più una sottocategoria assegnata.`)) {
       return;
     }
     try {
-      await supabase.from('categorie').delete().eq('id', id);
-      loadCategories();
+      const { error } = await supabase.from('categorie').delete().eq('id', id);
+      if (error) {
+        console.error('ERRORE ELIMINAZIONE CATEGORIA:', error);
+        alert(`Errore eliminazione: ${error.message}`);
+        return;
+      }
+      setCategories((prev) => prev.filter((c) => c.id !== id));
     } catch (err: any) {
       alert('Errore: ' + err.message);
     }
@@ -180,10 +249,11 @@ export default function CategoryManager() {
           <div className="flex justify-end gap-2 pt-2">
             <button
               type="submit"
-              className="px-5 py-2 bg-brand-amber text-white font-bold rounded-xl shadow-sm flex items-center gap-1.5"
+              disabled={saving}
+              className="px-5 py-2 bg-brand-amber text-white font-bold rounded-xl shadow-sm flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
             >
               <Save className="w-3.5 h-3.5" />
-              <span>Salva Categoria</span>
+              <span>{saving ? 'Salvataggio in corso...' : 'Salva Categoria'}</span>
             </button>
           </div>
         </form>
@@ -198,7 +268,7 @@ export default function CategoryManager() {
           >
             <div>
               <div className="flex items-center justify-between mb-2">
-                <CategoryBadge tipo={cat.tipo} />
+                <CategoryBadge tipo={cat.tipo || cat.tipo_categoria || 'cartoleria'} />
                 <span className="text-[10px] font-mono text-brand-dark/40">/{cat.slug}</span>
               </div>
               <h4 className="text-sm font-bold text-brand-dark">{cat.nome}</h4>

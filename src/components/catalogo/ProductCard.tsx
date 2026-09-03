@@ -16,6 +16,8 @@ export interface Product {
   sconto_percentuale?: number | null;
   prezzo_scontato?: number | null;
   immagine_url?: string | null;
+  immagine?: string | null;
+  image_url?: string | null;
   quantita_disponibile?: number | null;
   disponibile?: boolean;
   in_evidenza?: boolean;
@@ -29,6 +31,13 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const [added, setAdded] = React.useState(false);
+
+  // Allineamento proprietà immagine con fallback multipli
+  const imgSrc = 
+    product.immagine_url || 
+    product.immagine || 
+    product.image_url || 
+    'https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=600&auto=format&fit=crop&q=80';
 
   const activePrice = product.prezzo_scontato && product.prezzo_scontato > 0 
     ? product.prezzo_scontato 
@@ -51,7 +60,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       marca: product.marca,
       prezzo: product.prezzo,
       prezzo_scontato: product.prezzo_scontato,
-      immagine_url: product.immagine_url,
+      immagine_url: imgSrc,
       tipo_prodotto: product.tipo_prodotto,
       quantita_disponibile: product.quantita_disponibile,
     }, 1);
@@ -63,10 +72,11 @@ export default function ProductCard({ product }: ProductCardProps) {
   return (
     <div className={`group relative rounded-3xl bg-white border border-brand-dark/10 hover:border-brand-amber/40 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden ${isOutOfStock ? 'opacity-85' : ''}`}>
       
-      {/* Container Immagine con Adattamento Completo */}
-      <a href={`/prodotto/${product.slug}`} className="block relative aspect-square bg-brand-cream/30 overflow-hidden p-3 flex items-center justify-center">
+      {/* Container Immagine con Adattamento Completo & Sfondo Neutro */}
+      <a href={`/prodotto/${product.slug}`} className="block relative aspect-square bg-stone-100/70 overflow-hidden p-3 flex items-center justify-center">
         <img
-          src={product.immagine_url || 'https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=600&auto=format&fit=crop&q=80'}
+          key={imgSrc}
+          src={imgSrc}
           alt={product.nome}
           className={`w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 drop-shadow-xs ${isOutOfStock ? 'grayscale-[30%]' : ''}`}
           loading="lazy"

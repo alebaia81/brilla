@@ -198,26 +198,46 @@ interface CatalogPageProps {
 export default function CatalogPage({ initialTipo = 'all' }: CatalogPageProps) {
   const [products, setProducts] = useState<Product[]>(FALLBACK_ALL_PRODUCTS);
   const [categories, setCategories] = useState<Category[]>(FALLBACK_CATEGORIES);
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [loading, setLoading] = useState(true);
 
-  // Stati dei filtri
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedTipo, setSelectedTipo] = useState(initialTipo);
+  // Stati dei filtri inizializzati subito in modo sincrono dai parametri URL per prevenire flash
+  const [searchTerm, setSearchTerm] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return new URLSearchParams(window.location.search).get('q') || '';
+    }
+    return '';
+  });
+
+  const [selectedTipo, setSelectedTipo] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('tipo') || params.get('reparto') || params.get('categoria') || initialTipo || 'all';
+    }
+    return initialTipo || 'all';
+  });
+
+  const [selectedCategory, setSelectedCategory] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('cat') || params.get('sottocategoria') || 'all';
+    }
+    return 'all';
+  });
+
   const [selectedMarca, setSelectedMarca] = useState('all');
   const [sortBy, setSortBy] = useState<'featured' | 'price-asc' | 'price-desc' | 'name'>('featured');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
-  // Leggi i parametri query dall'URL se presenti nel browser
+  // Sincronizzazione al cambio URL (es. navigazione browser back/forward)
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
-      const urlTipo = params.get('tipo');
+      const urlTipo = params.get('tipo') || params.get('reparto');
       const urlSearch = params.get('q');
-      const urlCat = params.get('cat') || params.get('categoria');
-      if (urlTipo) setSelectedTipo(urlTipo);
-      if (urlSearch) setSearchTerm(urlSearch);
-      if (urlCat) setSelectedCategory(urlCat);
+      const urlCat = params.get('cat') || params.get('sottocategoria');
+      if (urlTipo && urlTipo !== selectedTipo) setSelectedTipo(urlTipo);
+      if (urlSearch && urlSearch !== searchTerm) setSearchTerm(urlSearch);
+      if (urlCat && urlCat !== selectedCategory) setSelectedCategory(urlCat);
     }
   }, []);
 
@@ -536,7 +556,21 @@ export default function CatalogPage({ initialTipo = 'all' }: CatalogPageProps) {
               </div>
             </div>
           )}
-          {filteredProducts.length === 0 ? (
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-8">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="rounded-3xl bg-white border border-brand-dark/10 p-4 space-y-4 animate-pulse">
+                  <div className="aspect-square bg-stone-100 rounded-2xl" />
+                  <div className="space-y-2 pt-2">
+                    <div className="h-3 bg-stone-100 rounded-md w-1/3" />
+                    <div className="h-4 bg-stone-100 rounded-md w-3/4" />
+                    <div className="h-3 bg-stone-100 rounded-md w-1/2" />
+                  </div>
+                  <div className="h-9 bg-stone-100 rounded-xl w-full" />
+                </div>
+              ))}
+            </div>
+          ) : filteredProducts.length === 0 ? (
             <div className="rounded-3xl bg-white border border-brand-dark/10 p-12 text-center flex flex-col items-center justify-center min-h-[350px]">
               <div className="w-16 h-16 rounded-full bg-brand-cream flex items-center justify-center text-brand-dark/40 mb-4">
                 <PackageX className="w-8 h-8" />
