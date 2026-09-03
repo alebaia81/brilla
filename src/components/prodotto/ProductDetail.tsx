@@ -254,9 +254,14 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
 
   const activePrice = product.prezzo_scontato && product.prezzo_scontato > 0 
     ? product.prezzo_scontato 
-    : product.prezzo;
+    : (product.sconto_percentuale && product.sconto_percentuale > 0
+        ? Number((product.prezzo * (1 - product.sconto_percentuale / 100)).toFixed(2))
+        : product.prezzo);
 
-  const hasDiscount = Boolean(product.sconto_percentuale && product.sconto_percentuale > 0);
+  const hasDiscount = Boolean(
+    (product.sconto_percentuale && product.sconto_percentuale > 0) ||
+    (product.prezzo_scontato && product.prezzo_scontato < product.prezzo)
+  );
 
   const isOutOfStock = product.disponibile === false || (product.quantita_disponibile != null && product.quantita_disponibile <= 0);
   const isLowStock = !isOutOfStock && product.quantita_disponibile != null && product.quantita_disponibile < 5;
@@ -270,7 +275,7 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
       nome: product.nome,
       marca: product.marca,
       prezzo: product.prezzo,
-      prezzo_scontato: product.prezzo_scontato,
+      prezzo_scontato: activePrice < product.prezzo ? activePrice : null,
       immagine_url: product.immagine_url,
       tipo_prodotto: product.tipo_prodotto,
       quantita_disponibile: product.quantita_disponibile,
@@ -318,6 +323,7 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
         <div className="lg:col-span-6">
           <div className="relative aspect-square rounded-3xl bg-brand-cream/30 border border-brand-dark/10 overflow-hidden shadow-inner p-6 sm:p-8 flex items-center justify-center">
             <img
+              key={`${product.id}-${product.immagine_url || 'default'}`}
               src={product.immagine_url || 'https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=800&auto=format&fit=crop&q=80'}
               alt={product.nome}
               className={`max-w-full max-h-full object-contain drop-shadow-md ${isOutOfStock ? 'grayscale-[30%]' : ''}`}

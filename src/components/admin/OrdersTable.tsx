@@ -181,7 +181,7 @@ export default function OrdersTable() {
 
         <button
           type="button"
-          onClick={loadOrders}
+          onClick={() => loadOrders()}
           className="p-2.5 rounded-xl bg-brand-cream hover:bg-brand-dark hover:text-white transition-colors self-start sm:self-auto"
           title="Ricarica ordini"
         >

@@ -6,18 +6,17 @@ import CategoryBadge from './CategoryBadge';
 
 export interface Product {
   id: number | string;
-  categoria_id?: number | string | null;
+  categoria_id?: string | null;
   nome: string;
   slug: string;
   descrizione?: string | null;
   marca?: string | null;
   tipo_prodotto: string;
   prezzo: number;
+  prezzo_originale?: number | null;
   sconto_percentuale?: number | null;
   prezzo_scontato?: number | null;
   immagine_url?: string | null;
-  immagine?: string | null;
-  image_url?: string | null;
   quantita_disponibile?: number | null;
   disponibile?: boolean;
   in_evidenza?: boolean;
@@ -32,18 +31,19 @@ interface ProductCardProps {
 export default function ProductCard({ product }: ProductCardProps) {
   const [added, setAdded] = React.useState(false);
 
-  // Allineamento proprietà immagine con fallback multipli
-  const imgSrc = 
-    product.immagine_url || 
-    product.immagine || 
-    product.image_url || 
-    'https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=600&auto=format&fit=crop&q=80';
+  // Allineamento colonna standard Supabase immagine_url
+  const imgSrc = product.immagine_url || 'https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=600&auto=format&fit=crop&q=80';
 
   const activePrice = product.prezzo_scontato && product.prezzo_scontato > 0 
     ? product.prezzo_scontato 
-    : product.prezzo;
+    : (product.sconto_percentuale && product.sconto_percentuale > 0
+        ? Number((product.prezzo * (1 - product.sconto_percentuale / 100)).toFixed(2))
+        : product.prezzo);
 
-  const hasDiscount = Boolean(product.sconto_percentuale && product.sconto_percentuale > 0);
+  const hasDiscount = Boolean(
+    (product.sconto_percentuale && product.sconto_percentuale > 0) ||
+    (product.prezzo_scontato && product.prezzo_scontato < product.prezzo)
+  );
 
   const isOutOfStock = product.disponibile === false || (product.quantita_disponibile != null && product.quantita_disponibile <= 0);
   const isLowStock = !isOutOfStock && product.quantita_disponibile != null && product.quantita_disponibile < 5;
@@ -59,7 +59,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       nome: product.nome,
       marca: product.marca,
       prezzo: product.prezzo,
-      prezzo_scontato: product.prezzo_scontato,
+      prezzo_scontato: activePrice < product.prezzo ? activePrice : null,
       immagine_url: imgSrc,
       tipo_prodotto: product.tipo_prodotto,
       quantita_disponibile: product.quantita_disponibile,
@@ -75,7 +75,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       {/* Container Immagine con Adattamento Completo & Sfondo Neutro */}
       <a href={`/prodotto/${product.slug}`} className="block relative aspect-square bg-stone-100/70 overflow-hidden p-3 flex items-center justify-center">
         <img
-          key={imgSrc}
+          key={`${product.id}-${imgSrc}`}
           src={imgSrc}
           alt={product.nome}
           className={`w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 drop-shadow-xs ${isOutOfStock ? 'grayscale-[30%]' : ''}`}

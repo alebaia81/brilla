@@ -122,19 +122,19 @@ export const CheckoutPage = () => {
           typeof str === 'string' &&
           /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(str);
 
-        const righe = items.map((item: any) => {
+        const righe = items.map((item: CartItem) => {
           const unitPrice = Number(
             item.prezzo_scontato && item.prezzo_scontato > 0
               ? item.prezzo_scontato
-              : (item.prezzo || item.price || 0)
+              : (item.prezzo || 0)
           );
-          const itemQty = Number(item.quantity || item.quantita || 1);
-          const itemName = item.nome || item.titolo || item.name || 'Articolo';
-          const sub = unitPrice * itemQty;
+          const itemQty = Number(item.quantita || 1);
+          const itemName = item.nome || 'Articolo';
+          const sub = Number((unitPrice * itemQty).toFixed(2));
 
           return {
             ordine_id: orderData.id,
-            prodotto_id: isValidUUID(item.id) ? item.id : null,
+            prodotto_id: isValidUUID(item.id) ? String(item.id) : null,
             nome_prodotto: itemName,
             quantita: itemQty,
             prezzo_unitario: unitPrice,
@@ -152,9 +152,36 @@ export const CheckoutPage = () => {
         } else {
           console.log('[ARTICOLI ORDINE INSERITI CON SUCCESSO]:', righe.length);
         }
+
+        // 1.3 Scalo effettivo della giacenza su Supabase (Gestione Scorte e Concorrenza)
+        for (const item of items) {
+          if (isValidUUID(item.id)) {
+            const itemQty = Number(item.quantita || 1);
+            try {
+              const { data: prodData } = await supabase
+                .from('prodotti')
+                .select('quantita_disponibile')
+                .eq('id', item.id)
+                .single();
+
+              if (prodData && prodData.quantita_disponibile != null) {
+                const newStock = Math.max(0, prodData.quantita_disponibile - itemQty);
+                await supabase
+                  .from('prodotti')
+                  .update({
+                    quantita_disponibile: newStock,
+                    disponibile: newStock > 0,
+                  })
+                  .eq('id', item.id);
+              }
+            } catch (errStock) {
+              console.warn(`Impossibile scalare giacenza per prodotto ${item.id}:`, errStock);
+            }
+          }
+        }
       }
 
-      // 1.3 Pulisci il carrello ed esegui il redirect solo dopo il successo su Supabase
+      // 1.4 Pulisci il carrello ed esegui il redirect solo dopo il successo su Supabase
       clearCart();
       window.location.href = `/conferma?ordine=${orderNumber}&tipo=${orderType}&nome=${encodeURIComponent(nome)}&telefono=${encodeURIComponent(telefono)}&totale=${finalTotal.toFixed(2)}&fascia=${encodeURIComponent(fascia)}&data=${encodeURIComponent(dataRitiro)}`;
     } catch (err: any) {
@@ -376,13 +403,13 @@ export const CheckoutPage = () => {
             </div>
           ) : (
             <div className="space-y-3 divide-y divide-neutral-100 max-h-80 overflow-y-auto pr-1">
-              {items.map((item: any, idx: number) => {
-                const unitPrice = Number(item.prezzo_scontato && item.prezzo_scontato > 0 ? item.prezzo_scontato : (item.prezzo || item.price || 0));
+              {items.map((item: CartItem, idx: number) => {
+                const unitPrice = Number(item.prezzo_scontato && item.prezzo_scontato > 0 ? item.prezzo_scontato : (item.prezzo || 0));
                 const itemQty = Number(item.quantita) || 1;
                 return (
                   <div key={idx} className="pt-2.5 first:pt-0 flex justify-between items-center text-xs">
                     <div className="min-w-0 pr-2">
-                      <p className="font-bold text-neutral-900 truncate">{item.nome || item.title}</p>
+                      <p className="font-bold text-neutral-900 truncate">{item.nome}</p>
                       <p className="text-[11px] text-neutral-500">€ {unitPrice.toFixed(2)} × {itemQty}</p>
                     </div>
                     <span className="font-bold text-neutral-900 shrink-0">

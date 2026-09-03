@@ -123,6 +123,9 @@ export default function ProductForm({ initialProduct, onSave, onCancel }: Produc
 
     const numStock = Math.max(0, parseInt(quantitaDisponibile, 10) || 0);
     const isActuallyAvailable = numStock > 0 ? disponibile : false;
+    const calcPrezzoScontato = numSconto > 0 
+      ? Number((numPrezzo * (1 - numSconto / 100)).toFixed(2)) 
+      : null;
 
     const payload = {
       categoria_id: categoriaId ? categoriaId : null,
@@ -133,6 +136,7 @@ export default function ProductForm({ initialProduct, onSave, onCancel }: Produc
       tipo_prodotto: tipoProdotto,
       prezzo: Number(numPrezzo.toFixed(2)),
       sconto_percentuale: Number(numSconto.toFixed(2)),
+      prezzo_scontato: calcPrezzoScontato,
       immagine_url: immagineUrl || null,
       quantita_disponibile: numStock,
       in_evidenza: inEvidenza,
