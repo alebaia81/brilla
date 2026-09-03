@@ -117,21 +117,40 @@ export const CheckoutPage = () => {
       console.log('[ORDINE INSERITO CON SUCCESSO]:', orderData);
 
       // 1.2 Inserimento Articoli dell'Ordine
-      if (orderData && orderData.id) {
-        const orderItemsPayload = items.map((item) => ({
-          ordine_id: orderData.id,
-          prodotto_id: Number(item.id) || 1,
-          nome_prodotto: item.nome || 'Articolo',
-          quantita: Number(item.quantita) || 1,
-          prezzo_unitario: item.prezzo_scontato && item.prezzo_scontato > 0 ? Number(item.prezzo_scontato) : Number(item.prezzo || 0),
-        }));
+      if (orderData && items.length > 0) {
+        const isValidUUID = (str: any) =>
+          typeof str === 'string' &&
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(str);
+
+        const righe = items.map((item: any) => {
+          const unitPrice = Number(
+            item.prezzo_scontato && item.prezzo_scontato > 0
+              ? item.prezzo_scontato
+              : (item.prezzo || item.price || 0)
+          );
+          const itemQty = Number(item.quantity || item.quantita || 1);
+          const itemName = item.nome || item.titolo || item.name || 'Articolo';
+          const sub = unitPrice * itemQty;
+
+          return {
+            ordine_id: orderData.id,
+            prodotto_id: isValidUUID(item.id) ? item.id : null,
+            nome_prodotto: itemName,
+            quantita: itemQty,
+            prezzo_unitario: unitPrice,
+            prezzo_al_momento: unitPrice,
+            subtotale: sub,
+          };
+        });
 
         const { error: itemsError } = await supabase
           .from('ordine_articoli')
-          .insert(orderItemsPayload);
+          .insert(righe);
 
         if (itemsError) {
           console.error('[ERRORE INSERIMENTO ARTICOLI ORDINE]:', itemsError);
+        } else {
+          console.log('[ARTICOLI ORDINE INSERITI CON SUCCESSO]:', righe.length);
         }
       }
 

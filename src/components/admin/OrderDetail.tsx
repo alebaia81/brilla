@@ -175,19 +175,25 @@ export default function OrderDetail({ order, onBack, onOrderUpdated }: OrderDeta
               </p>
             ) : (
               <div className="divide-y divide-brand-dark/5 text-xs">
-                {items.map((it) => (
-                  <div key={it.id} className="py-3 flex justify-between items-center">
-                    <div>
-                      <span className="font-bold text-brand-dark block">{it.nome_prodotto}</span>
-                      <span className="text-[10px] text-brand-dark/50">
-                        {it.quantita} × {formatPrice(it.prezzo_unitario)}
+                {items.map((it) => {
+                  const price = Number(it.prezzo_unitario ?? it.prezzo_al_momento ?? 0);
+                  const qty = Number(it.quantita ?? 1);
+                  const lineTotal = it.subtotale != null ? Number(it.subtotale) : (price * qty);
+
+                  return (
+                    <div key={it.id} className="py-3 flex justify-between items-center">
+                      <div>
+                        <span className="font-bold text-brand-dark block">{it.nome_prodotto}</span>
+                        <span className="text-[10px] text-brand-dark/50">
+                          {qty} × {formatPrice(price)}
+                        </span>
+                      </div>
+                      <span className="font-bold text-brand-dark">
+                        {formatPrice(lineTotal)}
                       </span>
                     </div>
-                    <span className="font-bold text-brand-dark">
-                      {formatPrice(it.quantita * it.prezzo_unitario)}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
