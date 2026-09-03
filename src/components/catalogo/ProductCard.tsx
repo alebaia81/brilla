@@ -6,6 +6,7 @@ import CategoryBadge from './CategoryBadge';
 
 export interface Product {
   id: number | string;
+  categoria_id?: number | string | null;
   nome: string;
   slug: string;
   descrizione?: string | null;

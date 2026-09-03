@@ -4,9 +4,28 @@ import ProductCard, { type Product } from './ProductCard';
 import FilterSidebar from './FilterSidebar';
 import { SlidersHorizontal, PackageX, Sparkles } from 'lucide-react';
 
+export interface Category {
+  id: string | number;
+  nome: string;
+  slug: string;
+  tipo_categoria?: string;
+  tipo?: string;
+  ordine?: number;
+}
+
+export const FALLBACK_CATEGORIES: Category[] = [
+  { id: '5d67032f-be4c-4eec-be15-970e13b0d907', nome: 'Penne e Matite', slug: 'penne-matite', tipo_categoria: 'cartoleria' },
+  { id: 'b29b07be-f379-4f6f-bc87-fd9f5ae0fb82', nome: 'Quaderni e Carta', slug: 'quaderni-carta', tipo_categoria: 'cartoleria' },
+  { id: '922ae16b-c354-4f8f-a7de-334ce6b8c2c2', nome: 'Riviste Mensili', slug: 'riviste-mensili', tipo_categoria: 'edicola' },
+  { id: 'e2af0565-6b0f-4aca-b703-1adc197f2cf0', nome: 'Fumetti e Giornali', slug: 'fumetti-giornali', tipo_categoria: 'edicola' },
+  { id: '7bd588c2-783c-45ad-98eb-80b9c1d09def', nome: 'Tazze e Mug', slug: 'tazze-mug', tipo_categoria: 'bar_gift' },
+  { id: '47e238c8-00a9-474b-9196-4ec40538355e', nome: 'Gadget e Ricordi', slug: 'gadget-ricordi', tipo_categoria: 'bar_gift' },
+];
+
 const FALLBACK_ALL_PRODUCTS: Product[] = [
   {
     id: 1,
+    categoria_id: '5d67032f-be4c-4eec-be15-970e13b0d907', // Penne e Matite
     nome: 'Set 10 Penne a Sfera Retrattili',
     slug: 'set-10-penne-sfera-retrattili',
     descrizione: 'Set professionale a sfera scorrevole con impugnatura soft touch.',
@@ -22,6 +41,7 @@ const FALLBACK_ALL_PRODUCTS: Product[] = [
   },
   {
     id: 2,
+    categoria_id: 'b29b07be-f379-4f6f-bc87-fd9f5ae0fb82', // Quaderni e Carta
     nome: 'Quadernone Maxi A4 a Righe 100g',
     slug: 'quadernone-maxi-a4-righe-100g',
     descrizione: 'Quadernone resistente con carta pregiata da 100g antispanciamento.',
@@ -37,6 +57,7 @@ const FALLBACK_ALL_PRODUCTS: Product[] = [
   },
   {
     id: 3,
+    categoria_id: '5d67032f-be4c-4eec-be15-970e13b0d907', // Penne e Matite
     nome: 'Evidenziatori Pastel Edition (Set 6pz)',
     slug: 'evidenziatori-pastel-edition-6pz',
     descrizione: 'Tonalità pastello delicate per studio e bullet journal.',
@@ -52,6 +73,7 @@ const FALLBACK_ALL_PRODUCTS: Product[] = [
   },
   {
     id: 4,
+    categoria_id: 'b29b07be-f379-4f6f-bc87-fd9f5ae0fb82', // Quaderni e Carta
     nome: 'Zaino Scuola & Viaggio Idrorepellente',
     slug: 'zaino-scuola-viaggio-idrorepellente',
     descrizione: 'Schienale ergonomico traspirante, tasca porta borraccia e PC 15.6".',
@@ -67,6 +89,7 @@ const FALLBACK_ALL_PRODUCTS: Product[] = [
   },
   {
     id: 5,
+    categoria_id: '922ae16b-c354-4f8f-a7de-334ce6b8c2c2', // Riviste Mensili
     nome: 'National Geographic Italia - Edizione Mese',
     slug: 'national-geographic-italia-mese',
     descrizione: 'Reportage esclusivi sul pianeta, natura, scienza e culture.',
@@ -84,6 +107,7 @@ const FALLBACK_ALL_PRODUCTS: Product[] = [
   },
   {
     id: 6,
+    categoria_id: 'e2af0565-6b0f-4aca-b703-1adc197f2cf0', // Fumetti e Giornali
     nome: 'La Gazzetta dello Sport + Magazine',
     slug: 'la-gazzetta-dello-sport-mag',
     descrizione: 'Il quotidiano sportivo più letto d\'Italia con inserto weekend.',
@@ -101,6 +125,7 @@ const FALLBACK_ALL_PRODUCTS: Product[] = [
   },
   {
     id: 7,
+    categoria_id: 'e2af0565-6b0f-4aca-b703-1adc197f2cf0', // Fumetti e Giornali
     nome: 'Topolino Fumetto da Collezione',
     slug: 'topolino-fumetto-da-collezione',
     descrizione: 'L\'intramontabile fumetto a colori per grandi e piccoli con gadget.',
@@ -118,6 +143,7 @@ const FALLBACK_ALL_PRODUCTS: Product[] = [
   },
   {
     id: 8,
+    categoria_id: '7bd588c2-783c-45ad-98eb-80b9c1d09def', // Tazze e Mug
     nome: 'Tazza Mug Artigianale "Brilla Castelnuovo"',
     slug: 'tazza-mug-artigianale-brilla',
     descrizione: 'Tazza in ceramica smaltata a mano con skyline Castelnuovo Bocca d\'Adda.',
@@ -133,6 +159,7 @@ const FALLBACK_ALL_PRODUCTS: Product[] = [
   },
   {
     id: 9,
+    categoria_id: '47e238c8-00a9-474b-9196-4ec40538355e', // Gadget e Ricordi
     nome: 'Confezione Cioccolatini & Praline 250g',
     slug: 'confezione-cioccolatini-praline-250g',
     descrizione: 'Selezione artigianale di cioccolato piemontese fondente e nocciola.',
@@ -148,6 +175,7 @@ const FALLBACK_ALL_PRODUCTS: Product[] = [
   },
   {
     id: 10,
+    categoria_id: '47e238c8-00a9-474b-9196-4ec40538355e', // Gadget e Ricordi
     nome: 'Bottiglia Termica Inox 500ml Brilla Edition',
     slug: 'bottiglia-termica-inox-500ml-brilla',
     descrizione: 'Mantiene caldo per 12h e freddo per 24h. Senza BPA.',
@@ -169,6 +197,8 @@ interface CatalogPageProps {
 
 export default function CatalogPage({ initialTipo = 'all' }: CatalogPageProps) {
   const [products, setProducts] = useState<Product[]>(FALLBACK_ALL_PRODUCTS);
+  const [categories, setCategories] = useState<Category[]>(FALLBACK_CATEGORIES);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [loading, setLoading] = useState(true);
 
   // Stati dei filtri
@@ -184,22 +214,28 @@ export default function CatalogPage({ initialTipo = 'all' }: CatalogPageProps) {
       const params = new URLSearchParams(window.location.search);
       const urlTipo = params.get('tipo');
       const urlSearch = params.get('q');
+      const urlCat = params.get('cat') || params.get('categoria');
       if (urlTipo) setSelectedTipo(urlTipo);
       if (urlSearch) setSearchTerm(urlSearch);
+      if (urlCat) setSelectedCategory(urlCat);
     }
   }, []);
 
-  // Fetch da Supabase
+  // Fetch Prodotti e Categorie da Supabase
   useEffect(() => {
-    async function loadProducts() {
+    async function loadData() {
       try {
-        const { data, error } = await supabase
-          .from('prodotti')
-          .select('*')
-          .order('id', { ascending: true });
+        const [prodRes, catRes] = await Promise.all([
+          supabase.from('prodotti').select('*').order('id', { ascending: true }),
+          supabase.from('categorie').select('*').order('ordine', { ascending: true })
+        ]);
 
-        if (!error && data && data.length > 0) {
-          setProducts(data as Product[]);
+        if (!prodRes.error && prodRes.data && prodRes.data.length > 0) {
+          setProducts(prodRes.data as Product[]);
+        }
+
+        if (!catRes.error && catRes.data && catRes.data.length > 0) {
+          setCategories(catRes.data as Category[]);
         }
       } catch (err) {
         console.warn('Uso i dati fallback per il catalogo:', err);
@@ -208,8 +244,34 @@ export default function CatalogPage({ initialTipo = 'all' }: CatalogPageProps) {
       }
     }
 
-    loadProducts();
+    loadData();
   }, []);
+
+  const handleTipoChange = (tipo: string) => {
+    setSelectedTipo(tipo);
+    setSelectedCategory('all');
+
+    // Se la marca precedentemente selezionata non appartiene al nuovo reparto, resetta su 'all'
+    if (selectedMarca !== 'all') {
+      const normTipo = tipo.replace('-', '_');
+      const validInNewTipo = products.some((p) => {
+        const matchesTipo = tipo === 'all' || p.tipo_prodotto?.replace('-', '_') === normTipo;
+        return matchesTipo && p.marca === selectedMarca;
+      });
+      if (!validInNewTipo) {
+        setSelectedMarca('all');
+      }
+    }
+  };
+
+  // Sottocategorie pertinenti al reparto selezionato
+  const currentSubcategories = useMemo(() => {
+    if (selectedTipo === 'all') {
+      return categories;
+    }
+    const normTipo = selectedTipo.replace('-', '_');
+    return categories.filter((c) => (c.tipo_categoria || c.tipo) === normTipo);
+  }, [categories, selectedTipo]);
 
   // Calcola il prezzo massimo globale per il range slider
   const maxPrice = useMemo(() => {
@@ -225,13 +287,26 @@ export default function CatalogPage({ initialTipo = 'all' }: CatalogPageProps) {
     }
   }, [maxPrice]);
 
-  // Lista univoca di marche disponibili
+  // Lista univoca di marche disponibili (filtrate dinamicamente in base al reparto attivo)
   const availableMarcas = useMemo(() => {
-    const marcas = products
+    let prodsToInspect = products;
+    if (selectedTipo !== 'all') {
+      const normTipo = selectedTipo.replace('-', '_');
+      prodsToInspect = products.filter((p) => p.tipo_prodotto?.replace('-', '_') === normTipo);
+    }
+
+    const marcas = prodsToInspect
       .map((p) => p.marca)
       .filter((m): m is string => Boolean(m && m.trim() !== ''));
     return Array.from(new Set(marcas)).sort();
-  }, [products]);
+  }, [products, selectedTipo]);
+
+  // Se la marca selezionata non appartiene più alle marche disponibili del reparto attivo, resettala a 'all'
+  useEffect(() => {
+    if (selectedMarca !== 'all' && !availableMarcas.includes(selectedMarca)) {
+      setSelectedMarca('all');
+    }
+  }, [availableMarcas, selectedMarca]);
 
   // Filtro e ordinamento client-side
   const filteredProducts = useMemo(() => {
@@ -242,6 +317,18 @@ export default function CatalogPage({ initialTipo = 'all' }: CatalogPageProps) {
           const normTipo = selectedTipo.replace('-', '_');
           const normProdTipo = p.tipo_prodotto?.replace('-', '_');
           if (normProdTipo !== normTipo) return false;
+        }
+
+        // Filtro Sottocategoria Specifica (Pillole)
+        if (selectedCategory !== 'all') {
+          const targetCat = categories.find(
+            (c) => String(c.id) === selectedCategory || c.slug === selectedCategory
+          );
+          const matchesId = p.categoria_id != null && String(p.categoria_id) === selectedCategory;
+          const matchesSlug = targetCat && p.categoria_id != null && (p.categoria_id === targetCat.slug || p.categoria_id === targetCat.id);
+          if (!matchesId && !matchesSlug) {
+            return false;
+          }
         }
 
         // Filtro Marca
@@ -276,11 +363,12 @@ export default function CatalogPage({ initialTipo = 'all' }: CatalogPageProps) {
         // Default: featured first
         return (b.in_evidenza ? 1 : 0) - (a.in_evidenza ? 1 : 0);
       });
-  }, [products, selectedTipo, selectedMarca, currentMaxPrice, searchTerm, sortBy]);
+  }, [products, categories, selectedTipo, selectedCategory, selectedMarca, currentMaxPrice, searchTerm, sortBy]);
 
   const handleResetFilters = () => {
     setSearchTerm('');
     setSelectedTipo('all');
+    setSelectedCategory('all');
     setSelectedMarca('all');
     setCurrentMaxPrice(maxPrice);
   };
@@ -340,7 +428,7 @@ export default function CatalogPage({ initialTipo = 'all' }: CatalogPageProps) {
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
             selectedTipo={selectedTipo}
-            onTipoChange={setSelectedTipo}
+            onTipoChange={handleTipoChange}
             selectedMarca={selectedMarca}
             onMarcaChange={setSelectedMarca}
             availableMarcas={availableMarcas}
@@ -369,7 +457,7 @@ export default function CatalogPage({ initialTipo = 'all' }: CatalogPageProps) {
                 searchTerm={searchTerm}
                 onSearchChange={setSearchTerm}
                 selectedTipo={selectedTipo}
-                onTipoChange={(t) => { setSelectedTipo(t); setShowMobileFilters(false); }}
+                onTipoChange={(t) => { handleTipoChange(t); setShowMobileFilters(false); }}
                 selectedMarca={selectedMarca}
                 onMarcaChange={setSelectedMarca}
                 availableMarcas={availableMarcas}
@@ -384,6 +472,70 @@ export default function CatalogPage({ initialTipo = 'all' }: CatalogPageProps) {
 
         {/* Griglia Prodotti */}
         <main className="lg:col-span-9">
+
+          {/* Barra Pillole Sottocategorie */}
+          {currentSubcategories.length > 0 && (
+            <div className="mb-6 bg-white/70 backdrop-blur-xs p-3 sm:p-4 rounded-3xl border border-brand-dark/10 shadow-2xs">
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+                <button
+                  type="button"
+                  onClick={() => setSelectedCategory('all')}
+                  className={`px-4 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-2 shadow-2xs cursor-pointer ${
+                    selectedCategory === 'all'
+                      ? 'bg-brand-dark text-white shadow-brand-dark/20 scale-[1.02]'
+                      : 'bg-brand-cream/50 text-brand-dark/70 hover:text-brand-dark hover:bg-brand-cream border border-brand-dark/10'
+                  }`}
+                >
+                  <span>Tutti</span>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-extrabold ${
+                    selectedCategory === 'all' ? 'bg-white/20 text-white' : 'bg-brand-dark/10 text-brand-dark'
+                  }`}>
+                    {products.filter((p) => {
+                      if (selectedTipo === 'all') return true;
+                      const normTipo = selectedTipo.replace('-', '_');
+                      const normProdTipo = p.tipo_prodotto?.replace('-', '_');
+                      return normProdTipo === normTipo;
+                    }).length}
+                  </span>
+                </button>
+
+                {currentSubcategories.map((cat) => {
+                  const isSelected = selectedCategory === String(cat.id) || selectedCategory === cat.slug;
+                  // Conteggio prodotti per questa categoria nel reparto corrente
+                  const count = products.filter((p) => {
+                    if (selectedTipo !== 'all') {
+                      const normTipo = selectedTipo.replace('-', '_');
+                      const normProdTipo = p.tipo_prodotto?.replace('-', '_');
+                      if (normProdTipo !== normTipo) return false;
+                    }
+                    return String(p.categoria_id) === String(cat.id) || p.categoria_id === cat.slug;
+                  }).length;
+
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setSelectedCategory(isSelected ? 'all' : String(cat.id))}
+                      className={`px-4 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-2 shadow-2xs cursor-pointer ${
+                        isSelected
+                          ? 'bg-brand-cyan text-white shadow-brand-cyan/25 scale-[1.02]'
+                          : 'bg-white text-brand-dark/70 hover:text-brand-dark hover:bg-brand-cream border border-brand-dark/10'
+                      }`}
+                    >
+                      <span>{cat.nome}</span>
+                      {count > 0 && (
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-extrabold ${
+                          isSelected ? 'bg-white/20 text-white' : 'bg-brand-cream text-brand-dark/70'
+                        }`}>
+                          {count}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           {filteredProducts.length === 0 ? (
             <div className="rounded-3xl bg-white border border-brand-dark/10 p-12 text-center flex flex-col items-center justify-center min-h-[350px]">
               <div className="w-16 h-16 rounded-full bg-brand-cream flex items-center justify-center text-brand-dark/40 mb-4">

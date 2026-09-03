@@ -1,9 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { slugify, formatPrice } from '../../lib/format';
 import ImageUploader from './ImageUploader';
 import { type Product } from '../catalogo/ProductCard';
-import { Save, ArrowLeft, Loader2, Sparkles, Tag, DollarSign, BookOpen, Newspaper, Coffee, AlertCircle } from 'lucide-react';
+import { Save, ArrowLeft, Loader2, Sparkles, Tag, DollarSign, BookOpen, Newspaper, Coffee, AlertCircle, Layers } from 'lucide-react';
+
+interface CategoryOption {
+  id: string | number;
+  nome: string;
+  slug: string;
+  tipo_categoria?: string;
+  tipo?: string;
+}
+
+const FALLBACK_CATEGORIES: CategoryOption[] = [
+  { id: '5d67032f-be4c-4eec-be15-970e13b0d907', nome: 'Penne e Matite', slug: 'penne-matite', tipo_categoria: 'cartoleria' },
+  { id: 'b29b07be-f379-4f6f-bc87-fd9f5ae0fb82', nome: 'Quaderni e Carta', slug: 'quaderni-carta', tipo_categoria: 'cartoleria' },
+  { id: '922ae16b-c354-4f8f-a7de-334ce6b8c2c2', nome: 'Riviste Mensili', slug: 'riviste-mensili', tipo_categoria: 'edicola' },
+  { id: 'e2af0565-6b0f-4aca-b703-1adc197f2cf0', nome: 'Fumetti e Giornali', slug: 'fumetti-giornali', tipo_categoria: 'edicola' },
+  { id: '7bd588c2-783c-45ad-98eb-80b9c1d09def', nome: 'Tazze e Mug', slug: 'tazze-mug', tipo_categoria: 'bar_gift' },
+  { id: '47e238c8-00a9-474b-9196-4ec40538355e', nome: 'Gadget e Ricordi', slug: 'gadget-ricordi', tipo_categoria: 'bar_gift' },
+];
 
 interface ProductFormProps {
   initialProduct?: Product | null;
@@ -17,6 +34,29 @@ export default function ProductForm({ initialProduct, onSave, onCancel }: Produc
   const [descrizione, setDescrizione] = useState(initialProduct?.descrizione || '');
   const [marca, setMarca] = useState(initialProduct?.marca || '');
   const [tipoProdotto, setTipoProdotto] = useState(initialProduct?.tipo_prodotto || 'cartoleria');
+  const [categoriaId, setCategoriaId] = useState<string>(
+    initialProduct?.categoria_id ? String(initialProduct.categoria_id) : ''
+  );
+  const [categories, setCategories] = useState<CategoryOption[]>(FALLBACK_CATEGORIES);
+
+  useEffect(() => {
+    async function loadCategories() {
+      try {
+        const { data, error } = await supabase
+          .from('categorie')
+          .select('id, nome, slug, tipo_categoria, ordine')
+          .order('ordine', { ascending: true });
+
+        if (!error && data && data.length > 0) {
+          setCategories(data as CategoryOption[]);
+        }
+      } catch (err) {
+        console.warn('Uso categorie fallback in ProductForm:', err);
+      }
+    }
+
+    loadCategories();
+  }, []);
   const [prezzo, setPrezzo] = useState(initialProduct?.prezzo ? String(initialProduct.prezzo) : '5.00');
   const [sconto, setSconto] = useState(initialProduct?.sconto_percentuale ? String(initialProduct.sconto_percentuale) : '0');
   const [immagineUrl, setImmagineUrl] = useState(initialProduct?.immagine_url || '');
@@ -56,6 +96,21 @@ export default function ProductForm({ initialProduct, onSave, onCancel }: Produc
   const prezzoFinale = numSconto > 0 ? numPrezzo * (1 - numSconto / 100) : numPrezzo;
   const risparmio = numPrezzo - prezzoFinale;
 
+  const normalizedTipo = tipoProdotto === 'bar-gift' ? 'bar_gift' : tipoProdotto;
+  const filteredSubcats = categories.filter((c) => {
+    const catTipo = c.tipo_categoria || c.tipo;
+    return catTipo === normalizedTipo;
+  });
+
+  const handleSelectTipo = (newTipo: string) => {
+    setTipoProdotto(newTipo);
+    const norm = newTipo === 'bar-gift' ? 'bar_gift' : newTipo;
+    const belongs = categories.some((c) => String(c.id) === categoriaId && (c.tipo_categoria || c.tipo) === norm);
+    if (!belongs) {
+      setCategoriaId('');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nome.trim()) {
@@ -66,16 +121,11 @@ export default function ProductForm({ initialProduct, onSave, onCancel }: Produc
     setSaving(true);
     setError(null);
 
-    // Mappa tipo categoria su ID (1: Cartoleria, 2: Edicola, 3: Bar & Gift)
-    let catId = 1;
-    if (tipoProdotto === 'edicola') catId = 2;
-    if (tipoProdotto === 'bar_gift' || tipoProdotto === 'bar-gift') catId = 3;
-
     const numStock = Math.max(0, parseInt(quantitaDisponibile, 10) || 0);
     const isActuallyAvailable = numStock > 0 ? disponibile : false;
 
     const payload = {
-      categoria_id: catId,
+      categoria_id: categoriaId ? categoriaId : null,
       nome: nome.trim(),
       slug: slug || slugify(nome),
       descrizione: descrizione.trim(),
@@ -353,7 +403,7 @@ export default function ProductForm({ initialProduct, onSave, onCancel }: Produc
                   <button
                     key={rep.id}
                     type="button"
-                    onClick={() => setTipoProdotto(rep.id)}
+                    onClick={() => handleSelectTipo(rep.id)}
                     className={`p-3.5 rounded-2xl border-2 text-left transition-all flex flex-col justify-between gap-2 ${
                       isSelected
                         ? `${rep.color} font-bold shadow-sm scale-[1.02]`
@@ -369,6 +419,37 @@ export default function ProductForm({ initialProduct, onSave, onCancel }: Produc
                 );
               })}
             </div>
+          </div>
+
+          {/* Selettore Sottocategoria Specifica */}
+          <div className="p-4 rounded-2xl bg-brand-cream/40 border border-brand-dark/10 space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-brand-dark">
+                <Layers className="w-3.5 h-3.5 text-brand-cyan" />
+                <span>Sottocategoria Specifica (Opzionale)</span>
+              </label>
+              {filteredSubcats.length > 0 && (
+                <span className="text-[10px] text-brand-dark/60 font-semibold">
+                  {filteredSubcats.length} categorie per questo reparto
+                </span>
+              )}
+            </div>
+
+            <select
+              value={categoriaId}
+              onChange={(e) => setCategoriaId(e.target.value)}
+              className="w-full px-3.5 py-2.5 bg-white border border-brand-dark/15 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-cyan text-xs font-bold text-brand-dark cursor-pointer shadow-2xs"
+            >
+              <option value="">Nessuna / Categoria Generale del Reparto</option>
+              {filteredSubcats.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.nome}
+                </option>
+              ))}
+            </select>
+            <p className="text-[10px] text-brand-dark/60">
+              Assegnando una sottocategoria, il prodotto potrà essere filtrato rapidamente tramite i pulsanti a pillola nel catalogo.
+            </p>
           </div>
 
           {/* Nome e Marca */}
