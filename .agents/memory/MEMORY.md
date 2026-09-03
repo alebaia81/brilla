@@ -4,10 +4,10 @@
 
 ---
 
-## 📍 Stato Corrente del Progetto (31 Agosto 2026)
-- **Stato:** Sviluppo completato con successo. Tutte le 17 route statiche SSG compilano regolarmente.
-- **Repository Git:** `https://github.com/alebaia81/brilla.git` (Branch `main`, sincronizzato).
-- **Prossimo Step Operativo:** Deploy su **GitHub Pages** (o hosting definitivo Hostinger).
+## 📍 Stato Corrente del Progetto (3 Settembre 2026)
+- **Stato:** Sviluppo avanzato, Sprint SEO Integrato, Ottimizzazioni CRO e Accessibilità WCAG 2.1 AA completati e pushati.
+- **Repository Git:** `https://github.com/alebaia81/brilla.git` (Branch `main`, commit `d266010`).
+- **Prossimo Step Operativo:** Deploy su hosting definitivo Hostinger (o GitHub Pages).
 
 ---
 
@@ -78,21 +78,23 @@
 
 ## 🏗️ Architettura Tecnica
 
-| Componente | Implementazione | Note |
-|---|---|---|
-| **Core** | Astro SSG (`output: 'static'`) | Genera 17 pagine HTML statiche in `dist/` |
+| **Core** | Astro SSG (`output: 'static'`) | Genera pagine HTML statiche in `dist/` + Sitemap XML automatica |
 | **UI Reattiva** | React 19 (`client:load` / `client:visible`) | Carrello Nanostores, Catalogo filtrabile, Checkout, Admin |
-| **Backend & Storage** | Supabase PostgreSQL + Storage | Client-side anon key, RLS off come da specifiche |
+| **Backend & Storage** | Supabase PostgreSQL + Storage | Client-side anon key, RLS off come da specifiche, conversione AVIF |
 | **Pagamenti** | PayPal JS SDK | Client-side per ordini con spedizione |
-| **Notifiche** | WhatsApp Link | `wa.me/393500206743` con messaggio ordine compilato |
+| **Notifiche & Contatti** | WhatsApp Direct Link (`wa.me`) | Privilegiato rispetto al telefono in chiaro per privacy e tracciabilità |
 | **Privacy & Cookie** | GDPR Compliance | Pagine `/privacy` e `/cookie` + Banner con localStorage |
-| **Local SEO** | Schema.org JSON-LD | `LocalBusiness`, geo-coordinates e orari per Castelnuovo Bocca d'Adda |
+| **Local SEO & Rich Snippets** | Schema.org JSON-LD | `LocalBusiness`, `Product`, `BreadcrumbList`, `FAQPage` + canonical tag |
+| **Accessibilità (WCAG 2.1 AA)** | Focus-visible & ARIA | `focus-visible:ring-[#2C3E50]`, aria-label su tutti i bottoni icona, drawer focus trapping |
 
 ---
 
 ## 🚀 Log Ultimi Commit
 
-- `feat`: add supabase realtime orders, pickup date picker, smart digital receipt with qr code and admin auth fix
+- `d266010` — feat(seo, cro, a11y): sprint seo integrato, ottimizzazioni cro e accessibilita wcag 2.1 aa
+- `87930f0` — feat(catalog): auto-hide out of stock products and add quick toggle in admin
+- `80ceec8` — feat: add official brilla logo favicon in svg, webmanifest and png formats
+- `6ba19d8` — fix(types): resolve database and cart schema inconsistencies, null safety and stock handling
 - `e148fcc` — feat(design): embed 3 official category photos and remove cartoonish emojis with editorial UI styling
 - `f6f1def` — refactor(hero): remove 3 pill cards and enhance conversion copywriting with store pickup emphasis
 - `aa5017d` — feat: replace 'gift' nomenclature with 'idee regalo' across all components and pages

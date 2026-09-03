@@ -32,6 +32,10 @@
 - **Bordi:** `rgba(28, 25, 23, 0.08)`
 - **Ombre:** `shadow-sm` per card standard, `shadow-xl shadow-brand-dark/5` per modali e drawer
 
+### 4. Accessibilità & Focus Rings (WCAG 2.1 AA)
+- **Focus Ring Globale:** `focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#2C3E50]` per pulsanti, link interattivi, campi input e selettori.
+- **Rapporto di Contrasto:** Minimo 4.5:1 per testi normali e 3:1 per elementi grafici e testi grandi rispetto allo sfondo. I badge su fondo chiaro utilizzano varianti scure (es. `text-amber-950 bg-amber-200/90` o `text-emerald-800`).
+
 ---
 
 ## ✍️ Tipografia
@@ -46,5 +50,7 @@
 ## 🧱 Componenti & Pattern
 - **Pill Badges:** Bordi arrotondati completi (`rounded-full`), testo compatto, icone coordinate.
 - **Product Card:** Hover lift sottile (`-translate-y-1`), ratio immagine coerente `aspect-square`, prezzo in evidenza con sconto calcolato in percentuale.
-- **Drawer Carrello:** Slide-in fluido da destra con backdrop opaco sfocato.
-- **Feedback & WhatsApp:** Pulsanti con icona WhatsApp verde smeraldo per immediatezza d'uso da parte dell'esercente.
+- **Drawer Carrello:** Slide-in fluido da destra con backdrop opaco sfocato, auto-focus sul pulsante di chiusura e chiusura tramite tasto ESC.
+- **CTA Orientate all'Azione (CRO):** Etichette ad alta conversione con verbo attivo (es. `⚡ Ordina e Ritira al Banco`, `🎒 Esplora il Reparto Scuola`).
+- **Feedback & WhatsApp:** Pulsanti con icona WhatsApp verde smeraldo per immediatezza d'uso e privacy preservata senza numeri telefonici mostrati in chiaro.
+

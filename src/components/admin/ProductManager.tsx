@@ -1,17 +1,21 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../../lib/supabase';
 import { type Product } from '../catalogo/ProductCard';
 import ProductForm from './ProductForm';
 import { formatPrice } from '../../lib/format';
 import CategoryBadge from '../catalogo/CategoryBadge';
-import { Plus, Edit2, Trash2, Search, Sparkles } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, Sparkles, X, Filter } from 'lucide-react';
 
 export default function ProductManager() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  
+  // Filtri client-side
+  const [selectedReparto, setSelectedReparto] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedStato, setSelectedStato] = useState<'all' | 'attivi' | 'disattivati'>('all');
 
   const loadProducts = async () => {
     setLoading(true);
@@ -81,6 +85,69 @@ export default function ProductManager() {
     }
   };
 
+  // Definizione dei reparti disponibili
+  const reparti = [
+    { id: 'all', label: 'Tutti i Reparti' },
+    { id: 'cartoleria', label: 'Cartoleria & Scuola', color: 'bg-badge-cartoleria' },
+    { id: 'edicola', label: 'Edicola & Riviste', color: 'bg-badge-edicola' },
+    { id: 'bar_gift', label: 'Bar, Caffè & Idee Regalo', color: 'bg-badge-gift' },
+  ];
+
+  // Conteggio dinamico degli articoli per ciascun reparto
+  const repartoCounts = useMemo(() => {
+    const counts: Record<string, number> = {
+      all: products.length,
+      cartoleria: 0,
+      edicola: 0,
+      bar_gift: 0,
+    };
+
+    products.forEach((p) => {
+      const t = (p.tipo_prodotto || (p as any).tipo || (p as any).categoria_tipo || '').replace('-', '_');
+      if (t && counts[t] !== undefined) {
+        counts[t]++;
+      }
+    });
+
+    return counts;
+  }, [products]);
+
+  // Logica di filtraggio client-side completa
+  const filteredProducts = useMemo(() => {
+    return products.filter((p) => {
+      // 1. Filtro Macro-Reparto
+      const tipo = (p.tipo_prodotto || (p as any).tipo || (p as any).categoria_tipo || '').replace('-', '_');
+      const matchReparto = selectedReparto === 'all' || tipo === selectedReparto;
+
+      // 2. Filtro Query Testo (nome o marca)
+      const q = searchTerm.toLowerCase().trim();
+      const matchQuery =
+        !q ||
+        (p.nome && p.nome.toLowerCase().includes(q)) ||
+        (p.marca && p.marca.toLowerCase().includes(q));
+
+      // 3. Filtro Stato Disponibilità
+      const isZeroStock = p.quantita_disponibile != null && p.quantita_disponibile <= 0;
+      const isAttivo = p.disponibile !== false && !isZeroStock;
+      const matchStato =
+        selectedStato === 'all'
+          ? true
+          : selectedStato === 'attivi'
+          ? isAttivo
+          : !isAttivo;
+
+      return matchReparto && matchQuery && matchStato;
+    });
+  }, [products, selectedReparto, searchTerm, selectedStato]);
+
+  const hasActiveFilters = selectedReparto !== 'all' || searchTerm.trim() !== '' || selectedStato !== 'all';
+
+  const handleResetFilters = () => {
+    setSelectedReparto('all');
+    setSearchTerm('');
+    setSelectedStato('all');
+  };
+
   if (isCreating || editingProduct) {
     return (
       <ProductForm
@@ -98,16 +165,6 @@ export default function ProductManager() {
     );
   }
 
-  const filteredProducts = products.filter((p) => {
-    if (!searchTerm.trim()) return true;
-    const q = searchTerm.toLowerCase();
-    return (
-      p.nome?.toLowerCase().includes(q) ||
-      p.marca?.toLowerCase().includes(q) ||
-      p.tipo_prodotto?.toLowerCase().includes(q)
-    );
-  });
-
   return (
     <div className="space-y-6">
       
@@ -116,7 +173,7 @@ export default function ProductManager() {
         <div>
           <h2 className="text-xl font-extrabold text-brand-dark">Gestione Catalogo Prodotti</h2>
           <p className="text-xs text-brand-dark/60 mt-0.5">
-            {products.length} articoli totali presenti nel database.
+            {products.length} articoli totali presenti nel database · {filteredProducts.length} visualizzati.
           </p>
         </div>
 
@@ -124,7 +181,7 @@ export default function ProductManager() {
           <button
             type="button"
             onClick={() => setIsCreating(true)}
-            className="px-5 py-2.5 bg-brand-cyan hover:bg-brand-cyan/90 text-white text-xs font-bold rounded-xl shadow-md shadow-brand-cyan/20 transition-all flex items-center gap-2"
+            className="px-5 py-2.5 bg-brand-cyan hover:bg-brand-cyan/90 text-white text-xs font-bold rounded-xl shadow-md shadow-brand-cyan/20 transition-all flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#2C3E50] cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Aggiungi Prodotto</span>
@@ -132,16 +189,107 @@ export default function ProductManager() {
         </div>
       </div>
 
-      {/* Ricerca Veloce */}
-      <div className="relative">
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Cerca per nome, marca o reparto..."
-          className="w-full pl-10 pr-4 py-3 bg-white border border-brand-dark/10 rounded-2xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-cyan shadow-2xs"
-        />
-        <Search className="w-4 h-4 text-brand-dark/40 absolute left-3.5 top-3.5" />
+      {/* Barra Filtri Completa: Tabs Reparti + Ricerca + Selettore Stato */}
+      <div className="bg-white p-4 sm:p-5 rounded-3xl border border-brand-dark/10 shadow-sm space-y-4">
+        
+        {/* Riga 1: Tabs Reparto con Contatori Numerici */}
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 max-w-full scrollbar-none" role="tablist" aria-label="Filtra per reparto">
+            {reparti.map((rep) => {
+              const isSelected = selectedReparto === rep.id;
+              const count = repartoCounts[rep.id] ?? 0;
+
+              return (
+                <button
+                  key={rep.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={isSelected}
+                  aria-pressed={isSelected}
+                  onClick={() => setSelectedReparto(rep.id)}
+                  className={`px-3.5 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-2 shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-[#2C3E50] cursor-pointer ${
+                    isSelected
+                      ? 'bg-brand-dark text-white shadow-sm scale-[1.02]'
+                      : 'bg-brand-cream/50 text-brand-dark/75 hover:bg-brand-cream hover:text-brand-dark border border-brand-dark/10'
+                  }`}
+                >
+                  {rep.color && (
+                    <span className={`w-2 h-2 rounded-full ${rep.color}`} aria-hidden="true" />
+                  )}
+                  <span>{rep.label}</span>
+                  <span
+                    className={`text-[10px] px-2 py-0.5 rounded-full font-black ${
+                      isSelected
+                        ? 'bg-white/20 text-white'
+                        : 'bg-brand-dark/10 text-brand-dark'
+                    }`}
+                  >
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={handleResetFilters}
+              className="text-xs font-bold text-rose-600 hover:text-rose-700 flex items-center gap-1.5 px-3 py-1.5 rounded-xl hover:bg-rose-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-600 cursor-pointer"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span>Azzera filtri</span>
+            </button>
+          )}
+        </div>
+
+        {/* Riga 2: Ricerca Testuale & Selettore Stato */}
+        <div className="pt-3 border-t border-brand-dark/5 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          
+          {/* Campo Ricerca Testo */}
+          <div className="relative flex-1">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Cerca per nome prodotto o marca..."
+              aria-label="Cerca articoli nel catalogo per nome o marca"
+              className="w-full pl-9 pr-8 py-2.5 bg-brand-cream/40 border border-brand-dark/10 rounded-xl text-xs text-brand-dark focus:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-[#2C3E50] transition-all"
+            />
+            <Search className="w-4 h-4 text-brand-dark/40 absolute left-3 top-2.5" aria-hidden="true" />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => setSearchTerm('')}
+                className="absolute right-2.5 top-2.5 text-brand-dark/40 hover:text-brand-dark p-0.5 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2C3E50]"
+                aria-label="Cancella testo di ricerca"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          {/* Mini-selettore Stato Disponibilità */}
+          <div className="flex items-center gap-2 bg-brand-cream/40 px-3 py-1.5 rounded-xl border border-brand-dark/10 text-xs font-semibold">
+            <Filter className="w-3.5 h-3.5 text-brand-dark/50 flex-shrink-0" aria-hidden="true" />
+            <label htmlFor="stato-filter-select" className="text-brand-dark/60 whitespace-nowrap text-[11px] font-bold">
+              Stato:
+            </label>
+            <select
+              id="stato-filter-select"
+              value={selectedStato}
+              onChange={(e: any) => setSelectedStato(e.target.value)}
+              aria-label="Filtra per stato di disponibilità"
+              className="bg-transparent text-brand-dark font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2C3E50] rounded-lg px-1 cursor-pointer"
+            >
+              <option value="all">Tutti gli stati ({products.length})</option>
+              <option value="attivi">Solo Attivi nello Store</option>
+              <option value="disattivati">Solo Disattivati / Esauriti</option>
+            </select>
+          </div>
+
+        </div>
+
       </div>
 
       {/* Tabella / Lista Prodotti */}
@@ -163,8 +311,24 @@ export default function ProductManager() {
             <tbody className="divide-y divide-brand-dark/5">
               {filteredProducts.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-brand-dark/50">
-                    Nessun prodotto trovato.
+                  <td colSpan={6} className="py-16 text-center text-brand-dark/60 space-y-2">
+                    <p className="text-sm font-bold text-brand-dark">
+                      {selectedReparto !== 'all'
+                        ? 'Nessun prodotto trovato per questo reparto.'
+                        : 'Nessun prodotto trovato.'}
+                    </p>
+                    <p className="text-xs text-brand-dark/50">
+                      Prova a modificare i filtri di ricerca o la selezione dello stato.
+                    </p>
+                    {hasActiveFilters && (
+                      <button
+                        type="button"
+                        onClick={handleResetFilters}
+                        className="inline-flex items-center gap-1 px-4 py-1.5 bg-brand-dark text-white text-xs font-semibold rounded-xl hover:bg-brand-dark/90 transition-colors mt-2 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2C3E50]"
+                      >
+                        Reimposta tutti i filtri
+                      </button>
+                    )}
                   </td>
                 </tr>
               ) : (
