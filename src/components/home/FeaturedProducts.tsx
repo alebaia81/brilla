@@ -76,6 +76,8 @@ export default function FeaturedProducts() {
           .from('prodotti')
           .select('*')
           .eq('in_evidenza', true)
+          .eq('disponibile', true)
+          .gt('quantita_disponibile', 0)
           .limit(8);
 
         if (!error && data && data.length > 0) {

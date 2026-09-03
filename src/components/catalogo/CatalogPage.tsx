@@ -241,12 +241,17 @@ export default function CatalogPage({ initialTipo = 'all' }: CatalogPageProps) {
     }
   }, []);
 
-  // Fetch Prodotti e Categorie da Supabase
+  // Fetch Prodotti e Categorie da Supabase (solo articoli disponibili e con giacenza > 0)
   useEffect(() => {
     async function loadData() {
       try {
         const [prodRes, catRes] = await Promise.all([
-          supabase.from('prodotti').select('*').order('id', { ascending: true }),
+          supabase
+            .from('prodotti')
+            .select('*')
+            .eq('disponibile', true)
+            .gt('quantita_disponibile', 0)
+            .order('id', { ascending: true }),
           supabase.from('categorie').select('*').order('ordine', { ascending: true })
         ]);
 
@@ -332,6 +337,11 @@ export default function CatalogPage({ initialTipo = 'all' }: CatalogPageProps) {
   const filteredProducts = useMemo(() => {
     return products
       .filter((p) => {
+        // Escludi rigorosamente articoli non disponibili o esauriti (scorte <= 0)
+        if (p.disponibile === false || (p.quantita_disponibile != null && p.quantita_disponibile <= 0)) {
+          return false;
+        }
+
         // Filtro Reparto
         if (selectedTipo !== 'all') {
           const normTipo = selectedTipo.replace('-', '_');
