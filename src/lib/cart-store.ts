@@ -1,7 +1,7 @@
 import { atom, computed } from 'nanostores';
 
 export interface CartItem {
-  id: number;
+  id: number | string;
   slug: string;
   nome: string;
   marca?: string | null;
@@ -10,6 +10,7 @@ export interface CartItem {
   immagine_url?: string | null;
   quantita: number;
   tipo_prodotto?: string;
+  quantita_disponibile?: number | null;
 }
 
 // 1. Chiave unificata LocalStorage
@@ -95,60 +96,82 @@ export function toggleCart() {
 
 export function addToCart(product: Omit<CartItem, 'quantita'>, quantitaToAdd: number = 1) {
   const current = $cartStore.get();
-  const existingIndex = current.findIndex((item) => item.id === product.id);
+  const existingIndex = current.findIndex((item) => String(item.id) === String(product.id));
+  const maxStock = product.quantita_disponibile != null ? Math.max(0, product.quantita_disponibile) : null;
 
   if (existingIndex > -1) {
+    const existing = current[existingIndex];
+    let newQty = existing.quantita + quantitaToAdd;
+    const effectiveStock = maxStock ?? existing.quantita_disponibile;
+    if (effectiveStock != null) {
+      newQty = Math.min(effectiveStock, newQty);
+    }
     const updated = [...current];
     updated[existingIndex] = {
-      ...updated[existingIndex],
-      quantita: updated[existingIndex].quantita + quantitaToAdd,
+      ...existing,
+      quantita_disponibile: effectiveStock,
+      quantita: newQty,
     };
     $cartStore.set(updated);
   } else {
+    let initialQty = Math.max(1, quantitaToAdd);
+    if (maxStock != null) {
+      if (maxStock <= 0) return; // Non aggiungere se esaurito
+      initialQty = Math.min(maxStock, initialQty);
+    }
     $cartStore.set([
       ...current,
       {
         ...product,
-        quantita: Math.max(1, quantitaToAdd),
+        quantita_disponibile: maxStock,
+        quantita: initialQty,
       },
     ]);
   }
   openCart();
 }
 
-export function updateItemQuantity(id: number, delta: number) {
+export function updateItemQuantity(id: number | string, delta: number) {
   const current = $cartStore.get();
-  const target = current.find((item) => item.id === id);
+  const target = current.find((item) => String(item.id) === String(id));
   if (!target) return;
 
   const newQty = target.quantita + delta;
   if (newQty <= 0) {
     removeFromCart(id);
   } else {
+    if (delta > 0 && target.quantita_disponibile != null && newQty > target.quantita_disponibile) {
+      return; // Raggiunto limite scorte disponibili
+    }
     $cartStore.set(
       current.map((item) =>
-        item.id === id ? { ...item, quantita: newQty } : item
+        String(item.id) === String(id) ? { ...item, quantita: newQty } : item
       )
     );
   }
 }
 
-export function setItemQuantity(id: number, quantita: number) {
+export function setItemQuantity(id: number | string, quantita: number) {
   if (quantita <= 0) {
     removeFromCart(id);
     return;
   }
   const current = $cartStore.get();
+  const target = current.find((item) => String(item.id) === String(id));
+  let capped = quantita;
+  if (target?.quantita_disponibile != null) {
+    capped = Math.min(target.quantita_disponibile, capped);
+  }
   $cartStore.set(
     current.map((item) =>
-      item.id === id ? { ...item, quantita } : item
+      String(item.id) === String(id) ? { ...item, quantita: capped } : item
     )
   );
 }
 
-export function removeFromCart(id: number) {
+export function removeFromCart(id: number | string) {
   const current = $cartStore.get();
-  const nextCart = current.filter((item) => item.id !== id);
+  const nextCart = current.filter((item) => String(item.id) !== String(id));
   $cartStore.set(nextCart);
 }
 

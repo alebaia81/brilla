@@ -41,26 +41,44 @@ export default function CartItem({ item }: CartItemProps) {
       </div>
 
       {/* Selettore quantità */}
-      <div className="flex items-center border border-brand-dark/20 rounded-lg bg-white overflow-hidden shadow-2xs">
-        <button
-          type="button"
-          onClick={() => updateItemQuantity(item.id, -1)}
-          className="p-1 text-brand-dark/70 hover:bg-brand-dark/10 hover:text-brand-dark transition-colors"
-          aria-label="Riduci quantità"
-        >
-          <Minus className="w-3.5 h-3.5" />
-        </button>
-        <span className="px-2 text-xs font-semibold text-brand-dark min-w-[20px] text-center">
-          {item.quantita}
-        </span>
-        <button
-          type="button"
-          onClick={() => updateItemQuantity(item.id, 1)}
-          className="p-1 text-brand-dark/70 hover:bg-brand-dark/10 hover:text-brand-dark transition-colors"
-          aria-label="Aumenta quantità"
-        >
-          <Plus className="w-3.5 h-3.5" />
-        </button>
+      <div className="flex flex-col items-end gap-1">
+        <div className="flex items-center border border-brand-dark/20 rounded-lg bg-white overflow-hidden shadow-2xs">
+          <button
+            type="button"
+            onClick={() => updateItemQuantity(item.id, -1)}
+            className="p-1 text-brand-dark/70 hover:bg-brand-dark/10 hover:text-brand-dark transition-colors cursor-pointer"
+            aria-label="Riduci quantità"
+          >
+            <Minus className="w-3.5 h-3.5" />
+          </button>
+          <span className="px-2 text-xs font-semibold text-brand-dark min-w-[20px] text-center">
+            {item.quantita}
+          </span>
+          {(() => {
+            const isMaxReached = item.quantita_disponibile != null && item.quantita >= item.quantita_disponibile;
+            return (
+              <button
+                type="button"
+                disabled={isMaxReached}
+                onClick={() => updateItemQuantity(item.id, 1)}
+                className={`p-1 transition-colors ${
+                  isMaxReached
+                    ? 'text-brand-dark/20 cursor-not-allowed bg-brand-cream/60'
+                    : 'text-brand-dark/70 hover:bg-brand-dark/10 hover:text-brand-dark cursor-pointer'
+                }`}
+                title={isMaxReached ? `Massimo disponibile a magazzino (${item.quantita_disponibile} pz)` : 'Aumenta quantità'}
+                aria-label="Aumenta quantità"
+              >
+                <Plus className="w-3.5 h-3.5" />
+              </button>
+            );
+          })()}
+        </div>
+        {item.quantita_disponibile != null && item.quantita >= item.quantita_disponibile && (
+          <span className="text-[9px] font-bold text-amber-800 bg-amber-100/70 px-1 rounded">
+            Max scorte ({item.quantita_disponibile})
+          </span>
+        )}
       </div>
 
       {/* Rimuovi */}

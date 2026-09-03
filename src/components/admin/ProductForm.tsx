@@ -20,10 +20,15 @@ export default function ProductForm({ initialProduct, onSave, onCancel }: Produc
   const [prezzo, setPrezzo] = useState(initialProduct?.prezzo ? String(initialProduct.prezzo) : '5.00');
   const [sconto, setSconto] = useState(initialProduct?.sconto_percentuale ? String(initialProduct.sconto_percentuale) : '0');
   const [immagineUrl, setImmagineUrl] = useState(initialProduct?.immagine_url || '');
+  const [quantitaDisponibile, setQuantitaDisponibile] = useState(
+    initialProduct?.quantita_disponibile != null ? String(initialProduct.quantita_disponibile) : '10'
+  );
   const [inEvidenza, setInEvidenza] = useState(initialProduct?.in_evidenza || false);
   const [inEdicola, setInEdicola] = useState(initialProduct?.in_edicola_questo_mese || false);
   const [periodicita, setPeriodicita] = useState(initialProduct?.periodicita || 'mensile');
-  const [disponibile, setDisponibile] = useState(initialProduct?.disponibile !== false);
+  const [disponibile, setDisponibile] = useState(
+    initialProduct ? (initialProduct.disponibile !== false && (initialProduct.quantita_disponibile == null || initialProduct.quantita_disponibile > 0)) : true
+  );
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,6 +37,16 @@ export default function ProductForm({ initialProduct, onSave, onCancel }: Produc
     setNome(val);
     if (!initialProduct) {
       setSlug(slugify(val));
+    }
+  };
+
+  const handleStockChange = (val: string) => {
+    setQuantitaDisponibile(val);
+    const num = parseInt(val, 10);
+    if (!isNaN(num) && num <= 0) {
+      setDisponibile(false);
+    } else if (!isNaN(num) && num > 0 && !disponibile) {
+      setDisponibile(true);
     }
   };
 
@@ -56,6 +71,9 @@ export default function ProductForm({ initialProduct, onSave, onCancel }: Produc
     if (tipoProdotto === 'edicola') catId = 2;
     if (tipoProdotto === 'bar_gift' || tipoProdotto === 'bar-gift') catId = 3;
 
+    const numStock = Math.max(0, parseInt(quantitaDisponibile, 10) || 0);
+    const isActuallyAvailable = numStock > 0 ? disponibile : false;
+
     const payload = {
       categoria_id: catId,
       nome: nome.trim(),
@@ -66,10 +84,11 @@ export default function ProductForm({ initialProduct, onSave, onCancel }: Produc
       prezzo: Number(numPrezzo.toFixed(2)),
       sconto_percentuale: Number(numSconto.toFixed(2)),
       immagine_url: immagineUrl || null,
+      quantita_disponibile: numStock,
       in_evidenza: inEvidenza,
       in_edicola_questo_mese: inEdicola,
       periodicita: tipoProdotto === 'edicola' ? periodicita : null,
-      disponibile: disponibile,
+      disponibile: isActuallyAvailable,
     };
 
     try {
@@ -204,18 +223,63 @@ export default function ProductForm({ initialProduct, onSave, onCancel }: Produc
               Visibilità &amp; Stato
             </h4>
 
+            {/* Campo Quantità Disponibile / Giacenza */}
+            <div className="p-3.5 rounded-xl bg-white border border-brand-dark/10 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-bold text-brand-dark uppercase tracking-wider">
+                  Quantità Disponibile / Giacenza *
+                </label>
+                {parseInt(quantitaDisponibile, 10) === 0 ? (
+                  <span className="text-[10px] font-extrabold text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full">
+                    Esaurito (0 pz)
+                  </span>
+                ) : parseInt(quantitaDisponibile, 10) < 5 ? (
+                  <span className="text-[10px] font-extrabold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                    Scorte Basse ({quantitaDisponibile} pz)
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                    In Magazzino ({quantitaDisponibile} pz)
+                  </span>
+                )}
+              </div>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                required
+                value={quantitaDisponibile}
+                onChange={(e) => handleStockChange(e.target.value)}
+                placeholder="Es. 10"
+                className="w-full px-3.5 py-2.5 bg-brand-cream/40 border border-brand-dark/15 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-cyan font-black text-brand-dark text-sm"
+              />
+              <span className="text-[10px] text-brand-dark/50 block">
+                Se impostata a 0, il prodotto viene automaticamente contrassegnato come "Esaurito" per i clienti.
+              </span>
+            </div>
+
             <label className="flex items-center justify-between p-3 rounded-xl bg-white border border-brand-dark/5 cursor-pointer hover:border-brand-cyan/40 transition-colors">
               <div className="flex items-center gap-2.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                <span className={`w-2.5 h-2.5 rounded-full ${disponibile ? 'bg-emerald-500' : 'bg-rose-500'}`} />
                 <div>
-                  <span className="text-xs font-bold text-brand-dark block">Articolo Disponibile</span>
-                  <span className="text-[10px] text-brand-dark/60">Visibile per acquisto/prenotazione</span>
+                  <span className="text-xs font-bold text-brand-dark block">
+                    {disponibile ? 'Articolo Disponibile' : 'Articolo Non Disponibile / Esaurito'}
+                  </span>
+                  <span className="text-[10px] text-brand-dark/60">
+                    {disponibile ? 'Visibile per acquisto e prenotazione' : 'Disabilitato per acquisto'}
+                  </span>
                 </div>
               </div>
               <input
                 type="checkbox"
                 checked={disponibile}
-                onChange={(e) => setDisponibile(e.target.checked)}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setDisponibile(checked);
+                  if (checked && parseInt(quantitaDisponibile, 10) === 0) {
+                    setQuantitaDisponibile('1');
+                  }
+                }}
                 className="w-4 h-4 rounded text-brand-cyan focus:ring-brand-cyan"
               />
             </label>

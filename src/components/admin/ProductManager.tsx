@@ -35,7 +35,7 @@ export default function ProductManager() {
     loadProducts();
   }, []);
 
-  const handleDelete = async (id: number, name: string) => {
+  const handleDelete = async (id: number | string, name: string) => {
     if (!window.confirm(`Sei sicuro di voler eliminare "${name}" dal catalogo?`)) {
       return;
     }
@@ -165,11 +165,21 @@ export default function ProductManager() {
 
                     <td className="py-3.5 px-4">
                       <div className="flex flex-col gap-1 items-start">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          p.disponibile !== false ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
-                        }`}>
-                          {p.disponibile !== false ? 'Disponibile' : 'Esaurito'}
-                        </span>
+                        {p.disponibile !== false && (p.quantita_disponibile == null || p.quantita_disponibile > 0) ? (
+                          p.quantita_disponibile != null && p.quantita_disponibile < 5 ? (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                              Solo {p.quantita_disponibile} pz!
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                              Disponibile {p.quantita_disponibile != null ? `(${p.quantita_disponibile} pz)` : ''}
+                            </span>
+                          )
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800">
+                            Esaurito (0 pz)
+                          </span>
+                        )}
                         {p.in_evidenza && (
                           <span className="text-[9px] text-brand-amber font-bold flex items-center gap-0.5">
                             <Sparkles className="w-2.5 h-2.5" /> In Evidenza

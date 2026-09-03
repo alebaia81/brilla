@@ -14,6 +14,7 @@ const FALLBACK_FEATURED: Product[] = [
     prezzo: 6.50,
     sconto_percentuale: 10,
     prezzo_scontato: 5.85,
+    quantita_disponibile: 15,
     immagine_url: 'https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=600&auto=format&fit=crop&q=80',
     disponibile: true,
     in_evidenza: true,
@@ -27,6 +28,7 @@ const FALLBACK_FEATURED: Product[] = [
     prezzo: 49.90,
     sconto_percentuale: 20,
     prezzo_scontato: 39.92,
+    quantita_disponibile: 8,
     immagine_url: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&auto=format&fit=crop&q=80',
     disponibile: true,
     in_evidenza: true,
@@ -40,6 +42,7 @@ const FALLBACK_FEATURED: Product[] = [
     prezzo: 5.90,
     sconto_percentuale: 0,
     prezzo_scontato: 5.90,
+    quantita_disponibile: 12,
     immagine_url: 'https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=600&auto=format&fit=crop&q=80',
     disponibile: true,
     in_evidenza: true,
@@ -55,6 +58,7 @@ const FALLBACK_FEATURED: Product[] = [
     prezzo: 11.50,
     sconto_percentuale: 0,
     prezzo_scontato: 11.50,
+    quantita_disponibile: 20,
     immagine_url: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=600&auto=format&fit=crop&q=80',
     disponibile: true,
     in_evidenza: true,
@@ -88,26 +92,26 @@ export default function FeaturedProducts() {
   }, []);
 
   return (
-    <section class="py-16 sm:py-24 bg-brand-cream/60 border-t border-brand-dark/5">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-16 sm:py-24 bg-brand-cream/60 border-t border-brand-dark/5">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-12 gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-12 gap-4">
           <div>
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-amber/15 text-brand-dark text-xs font-bold uppercase tracking-wider mb-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-amber/15 text-brand-dark text-xs font-bold uppercase tracking-wider mb-2">
               <Sparkles className="w-3.5 h-3.5 text-brand-amber" />
               <span>Scelti per Te</span>
             </div>
-            <h2 class="text-3xl sm:text-4xl font-extrabold text-brand-dark tracking-tight">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-brand-dark tracking-tight">
               Novità &amp; Articoli in Evidenza
             </h2>
-            <p class="text-sm text-brand-dark/65 mt-2">
+            <p className="text-sm text-brand-dark/65 mt-2">
               I prodotti più richiesti del momento a Castelnuovo Bocca d'Adda.
             </p>
           </div>
 
           <a
             href="/catalogo"
-            class="inline-flex items-center gap-2 text-sm font-bold text-brand-dark hover:text-brand-amber transition-colors group self-start sm:self-auto"
+            className="inline-flex items-center gap-2 text-sm font-bold text-brand-dark hover:text-brand-amber transition-colors group self-start sm:self-auto"
           >
             <span>Vedi tutto il catalogo</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -115,7 +119,7 @@ export default function FeaturedProducts() {
         </div>
 
         {/* Griglia Prodotti */}
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
           {products.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
