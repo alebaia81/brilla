@@ -30,7 +30,7 @@ export const CheckoutPage = () => {
   };
 
   const [dataRitiro, setDataRitiro] = useState(getTodayIso());
-  const [fascia, setFascia] = useState('10:00 - 12:30 (Metà Mattinata)');
+  const [fascia, setFascia] = useState('09:00 - 11:30 (Metà Mattinata)');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -314,7 +314,7 @@ export const CheckoutPage = () => {
                     className="w-full p-3 rounded-lg border border-neutral-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"
                   />
                   <span className="block text-[11px] text-neutral-500 mt-1">
-                    Orario di apertura: Lun-Sab 06:30–12:30 / 15:30–19:30 • Dom 07:00–12:30
+                    Orario di apertura: Lun-Sab 06:00–14:00 • Dom 07:00–14:00 (Pomeriggio chiuso)
                   </span>
                 </div>
 
@@ -327,10 +327,9 @@ export const CheckoutPage = () => {
                     onChange={(e) => setFascia(e.target.value)}
                     className="w-full p-3 rounded-lg border border-neutral-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"
                   >
-                    <option value="08:00 - 10:00 (Prima Mattina)">08:00 - 10:00 (Prima Mattina)</option>
-                    <option value="10:00 - 12:30 (Metà Mattinata)">10:00 - 12:30 (Metà Mattinata)</option>
-                    <option value="16:00 - 18:00 (Pomeriggio)">16:00 - 18:00 (Pomeriggio)</option>
-                    <option value="18:00 - 19:30 (Sera)">18:00 - 19:30 (Sera)</option>
+                    <option value="06:30 - 09:00 (Primo Mattino)">06:30 - 09:00 (Primo Mattino)</option>
+                    <option value="09:00 - 11:30 (Metà Mattinata)">09:00 - 11:30 (Metà Mattinata)</option>
+                    <option value="11:30 - 14:00 (Pranzo e Chiusura)">11:30 - 14:00 (Pranzo e Chiusura)</option>
                   </select>
                 </div>
               </div>
@@ -366,6 +365,14 @@ export const CheckoutPage = () => {
                       className="w-full p-3 rounded-lg border border-neutral-300 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                     />
                   </div>
+                </div>
+                <div className="p-3 rounded-xl bg-amber-50/80 border border-amber-200/70 text-xs text-amber-950 space-y-1">
+                  <p className="font-semibold flex items-center gap-1.5">
+                    <span>📦 Informazioni su Spedizione e Resi</span>
+                  </p>
+                  <p className="text-[11px] text-amber-900/80 leading-normal">
+                    Diritto di recesso valido entro 14 giorni dalla ricezione del pacco. Le spese di spedizione per il reso sono a carico del cliente.
+                  </p>
                 </div>
               </div>
             )}

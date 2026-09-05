@@ -12,10 +12,9 @@ interface PickupFormProps {
 }
 
 const FASCE_ORARIE = [
-  '08:00 – 10:00 (Mattina presto)',
-  '10:00 – 12:30 (Metà mattinata)',
-  '14:00 – 16:30 (Pomeriggio)',
-  '16:30 – 19:30 (Tardo pomeriggio)',
+  '06:30 – 09:00 (Primo mattino)',
+  '09:00 – 11:30 (Metà mattinata)',
+  '11:30 – 14:00 (Pranzo e chiusura)',
 ];
 
 export default function PickupForm({ data, onChange }: PickupFormProps) {
@@ -43,6 +42,7 @@ export default function PickupForm({ data, onChange }: PickupFormProps) {
 
       <div className="p-3 rounded-xl bg-white/80 border border-emerald-200/50 text-xs text-emerald-900 leading-relaxed">
         <strong>Dove ritirare:</strong> Brilla Cafe’, Via Umberto I, 35, Castelnuovo Bocca d'Adda.<br />
+        <strong>Orari:</strong> Lun–Sab 06:00–14:00 • Dom 07:00–14:00 (pomeriggio chiuso).<br />
         <strong>Pagamento:</strong> Pagherai direttamente al momento del ritiro (contanti o carta/POS)!
       </div>
 

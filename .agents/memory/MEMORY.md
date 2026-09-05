@@ -22,6 +22,8 @@
 | **Partita IVA** | `11824030966` |
 | **Codice Destinatario (SDI)** | `W7YVJK9` |
 | **Google Rating** | 4.7★ (Castelnuovo Bocca d'Adda) |
+| **Orari di Apertura** | Lun–Sab 06:00–14:00 • Dom 07:00–14:00 (Pomeriggio chiuso) |
+| **Politica Resi** | Diritto di recesso entro 14 gg dalla ricezione, spedizione reso a carico cliente |
 
 ---
 

@@ -13,8 +13,8 @@ import {
   Truck, 
   Calendar, 
   ArrowLeft,
-  Share2,
-  PackageX
+  PackageX,
+  RotateCcw
 } from 'lucide-react';
 
 // Database di fallback completo con tutti gli articoli di prova
@@ -493,15 +493,21 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
               )}
             </div>
 
-            {/* Garanzie e Modalità Ritiro */}
-            <div className="grid grid-cols-2 gap-3 pt-4 text-xs text-brand-dark/75">
-              <div className="flex items-center gap-2 p-3 rounded-xl bg-brand-cream/50 border border-brand-dark/5">
-                <Store className="w-4 h-4 text-brand-amber flex-shrink-0" />
-                <span>Scegli &amp; Ritira gratuito</span>
+            {/* Garanzie, Consegna e Reso */}
+            <div className="space-y-2 pt-4 text-xs text-brand-dark/75">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-brand-cream/50 border border-brand-dark/5">
+                  <Store className="w-4 h-4 text-brand-amber flex-shrink-0" />
+                  <span>Scegli &amp; Ritira gratuito</span>
+                </div>
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-brand-cream/50 border border-brand-dark/5">
+                  <Truck className="w-4 h-4 text-brand-amber flex-shrink-0" />
+                  <span>Spedizione con corriere</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2 p-3 rounded-xl bg-brand-cream/50 border border-brand-dark/5">
-                <Truck className="w-4 h-4 text-brand-amber flex-shrink-0" />
-                <span>Spedizione con corriere</span>
+              <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-brand-cream/30 border border-brand-dark/5 text-[11px] text-brand-dark/70">
+                <RotateCcw className="w-3.5 h-3.5 text-brand-amber flex-shrink-0" />
+                <span>Reso entro 14 giorni dalla ricezione (spedizione a carico del cliente)</span>
               </div>
             </div>
 
