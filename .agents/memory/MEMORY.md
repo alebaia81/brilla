@@ -65,6 +65,7 @@
 - [`public/edicola.jpg`](file:///Volumes/Magazzino/Magazzino/progetti%20web/brilla/public/edicola.jpg) — Reparto Edicola & Quotidiani (riviste, fumetti, giornali).
 - [`public/bar.jpg`](file:///Volumes/Magazzino/Magazzino/progetti%20web/brilla/public/bar.jpg) — Reparto Bar, Caffè & Idee Regalo (tazze mug Brilla, souvenir, cioccolateria).
 - [`public/cappuccino.avif`](file:///Volumes/Magazzino/Magazzino/progetti%20web/brilla/public/cappuccino.avif) — Immagine principale Hero Section (cappuccino Brilla Cafe in formato ultra-leggero AVIF).
+- [`public/locale.avif`](file:///Volumes/Magazzino/Magazzino/progetti%20web/brilla/public/locale.avif) — Immagine ufficiale sezione Chi Siamo (locale Brilla Cafe a Castelnuovo Bocca d'Adda in formato AVIF).
 
 ---
 
