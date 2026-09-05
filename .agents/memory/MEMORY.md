@@ -64,6 +64,7 @@
 - [`public/cartoleria.jpg`](file:///Volumes/Magazzino/Magazzino/progetti%20web/brilla/public/cartoleria.jpg) — Reparto Cartoleria & Scuola (quaderni, zaini, penne).
 - [`public/edicola.jpg`](file:///Volumes/Magazzino/Magazzino/progetti%20web/brilla/public/edicola.jpg) — Reparto Edicola & Quotidiani (riviste, fumetti, giornali).
 - [`public/bar.jpg`](file:///Volumes/Magazzino/Magazzino/progetti%20web/brilla/public/bar.jpg) — Reparto Bar, Caffè & Idee Regalo (tazze mug Brilla, souvenir, cioccolateria).
+- [`public/cappuccino.avif`](file:///Volumes/Magazzino/Magazzino/progetti%20web/brilla/public/cappuccino.avif) — Immagine principale Hero Section (cappuccino Brilla Cafe in formato ultra-leggero AVIF).
 
 ---
 
