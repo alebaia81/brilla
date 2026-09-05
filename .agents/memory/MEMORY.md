@@ -5,8 +5,8 @@
 ---
 
 ## 📍 Stato Corrente del Progetto (3 Settembre 2026)
-- **Stato:** Sviluppo avanzato, Sprint SEO Integrato, Ottimizzazioni CRO e Accessibilità WCAG 2.1 AA completati e pushati.
-- **Repository Git:** `https://github.com/alebaia81/brilla.git` (Branch `main`, commit `d266010`).
+- **Stato:** Sviluppo completato, immagini locali AVIF integrate, nuovi orari e politica resi registrati e pushati.
+- **Repository Git:** `https://github.com/alebaia81/brilla.git` (Branch `main`, commit `21f3966`).
 - **Prossimo Step Operativo:** Deploy su hosting definitivo Hostinger (o GitHub Pages).
 
 ---
@@ -95,7 +95,10 @@
 
 ## 🚀 Log Ultimi Commit
 
-- `d266010` — feat(seo, cro, a11y): sprint seo integrato, ottimizzazioni cro e accessibilita wcag 2.1 aa
+- `21f3966` — feat(about): replace unsplash photo with official locale.avif image
+- `dcebda3` — feat(hero): replace external unsplash image with local cappuccino.avif
+- `6f138fb` — style(hero): match Cartoleria word color to Cartoleria & Scuola banner blue
+- `daa17bf` — feat: update opening hours to morning only and integrate 14-day return policy
 - `87930f0` — feat(catalog): auto-hide out of stock products and add quick toggle in admin
 - `80ceec8` — feat: add official brilla logo favicon in svg, webmanifest and png formats
 - `6ba19d8` — fix(types): resolve database and cart schema inconsistencies, null safety and stock handling
