@@ -6,7 +6,7 @@
 
 ## 📍 Stato Corrente del Progetto (3 Settembre 2026)
 - **Stato:** Sviluppo completato, immagini locali AVIF integrate, nuovi orari e politica resi registrati e pushati.
-- **Repository Git:** `https://github.com/alebaia81/brilla.git` (Branch `main`, commit `21f3966`).
+- **Repository Git:** `https://github.com/alebaia81/brilla.git` (Branch `main`, commit `4817574`).
 - **Prossimo Step Operativo:** Deploy su hosting definitivo Hostinger (o GitHub Pages).
 
 ---
@@ -95,6 +95,7 @@
 
 ## 🚀 Log Ultimi Commit
 
+- `4817574` — feat: add AI rendering disclaimer to about and hero sections
 - `21f3966` — feat(about): replace unsplash photo with official locale.avif image
 - `dcebda3` — feat(hero): replace external unsplash image with local cappuccino.avif
 - `6f138fb` — style(hero): match Cartoleria word color to Cartoleria & Scuola banner blue
