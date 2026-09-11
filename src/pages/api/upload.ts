@@ -5,11 +5,30 @@ export const prerender = false;
 
 const R2_PUBLIC_BASE_URL = 'https://pub-7ca92debbf604b7bb0c88ae6e9d4e4df.r2.dev';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, locals }) => {
   try {
-    const storage = typeof env !== 'undefined' ? env?.STORAGE : undefined;
+    // Risoluzione flessibile del binding R2:
+    // Supporta sia locals.runtime.env.STORAGE (e alias prodotti/brilla-prodotti)
+    // sia l'import standard da 'cloudflare:workers'
+    let storage: any = undefined;
+
+    try {
+      const runtimeEnv = (locals as any)?.runtime?.env;
+      if (runtimeEnv) {
+        storage = runtimeEnv.STORAGE || runtimeEnv.prodotti || runtimeEnv['brilla-prodotti'];
+      }
+    } catch {
+      // Ignora se locals.runtime.env non è accessibile o deprecato nel runtime corrente
+    }
+
+    if (!storage && typeof env !== 'undefined' && env) {
+      storage = env.STORAGE || (env as any).prodotti || (env as any)['brilla-prodotti'];
+    }
+
     if (!storage) {
-      return new Response(JSON.stringify({ error: 'Bucket R2 non disponibile o binding STORAGE mancante nel runtime Cloudflare' }), {
+      return new Response(JSON.stringify({ 
+        error: 'Bucket R2 non disponibile o binding (STORAGE / prodotti) mancante nel runtime Cloudflare' 
+      }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' },
       });

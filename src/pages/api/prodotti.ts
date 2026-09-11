@@ -18,9 +18,22 @@ function mapProduct(row: any) {
   };
 }
 
-export const GET: APIRoute = async ({ request }) => {
+function getDb(locals: any): any {
   try {
-    const db = typeof env !== 'undefined' ? env?.DB : undefined;
+    const rEnv = (locals as any)?.runtime?.env;
+    if (rEnv?.DB || rEnv?.['brilla-cafe-db']) {
+      return rEnv.DB || rEnv['brilla-cafe-db'];
+    }
+  } catch {}
+  if (typeof env !== 'undefined' && env) {
+    return env.DB || (env as any)['brilla-cafe-db'];
+  }
+  return undefined;
+}
+
+export const GET: APIRoute = async ({ request, locals }) => {
+  try {
+    const db = getDb(locals);
     if (!db) {
       return new Response(JSON.stringify({ error: 'Database D1 non disponibile o binding DB mancante' }), {
         status: 500,
@@ -69,9 +82,9 @@ export const GET: APIRoute = async ({ request }) => {
   }
 };
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, locals }) => {
   try {
-    const db = typeof env !== 'undefined' ? env?.DB : undefined;
+    const db = getDb(locals);
     if (!db) {
       return new Response(JSON.stringify({ error: 'Database D1 non disponibile' }), {
         status: 500,
@@ -129,9 +142,9 @@ export const POST: APIRoute = async ({ request }) => {
   }
 };
 
-export const PUT: APIRoute = async ({ request }) => {
+export const PUT: APIRoute = async ({ request, locals }) => {
   try {
-    const db = typeof env !== 'undefined' ? env?.DB : undefined;
+    const db = getDb(locals);
     if (!db) {
       return new Response(JSON.stringify({ error: 'Database D1 non disponibile' }), {
         status: 500,
@@ -220,9 +233,9 @@ export const PUT: APIRoute = async ({ request }) => {
   }
 };
 
-export const DELETE: APIRoute = async ({ request }) => {
+export const DELETE: APIRoute = async ({ request, locals }) => {
   try {
-    const db = typeof env !== 'undefined' ? env?.DB : undefined;
+    const db = getDb(locals);
     if (!db) {
       return new Response(JSON.stringify({ error: 'Database D1 non disponibile' }), {
         status: 500,
