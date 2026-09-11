@@ -4,10 +4,15 @@
 
 ---
 
-## 📍 Stato Corrente del Progetto (3 Settembre 2026)
-- **Stato:** Sviluppo completato, immagini locali AVIF integrate, nuovi orari e politica resi registrati e pushati.
-- **Repository Git:** `https://github.com/alebaia81/brilla.git` (Branch `main`, commit `4817574`).
-- **Prossimo Step Operativo:** Deploy su hosting definitivo Hostinger (o GitHub Pages).
+## 📍 Stato Corrente del Progetto (11 Settembre 2026)
+- **Stato:** Migrazione completa da Supabase all'ecosistema **Cloudflare (D1 Database SQLite + R2 Object Storage + Pages)**.
+- **Ambiente Attuale (Test / Sviluppatore):**
+  - Database D1: `brilla-cafe-db` (ambiente personale di test dello sviluppatore).
+  - Storage R2: `brilla-prodotti` (CDN pubblica: `https://pub-7ca92debbf604b7bb0c88ae6e9d4e4df.r2.dev`).
+  - Polling ordini realtime (7s) con alert visivo lampeggiante e audio Web Audio API nel pannello admin.
+- **Prossimo Step Operativo (Importante):**
+  - Prossimamente verrà collegato l'account Cloudflare ufficiale e definitivo della cliente (ambiente di produzione finale, non più test). Sarà sufficiente collegare i binding D1 (`DB`) e R2 (`STORAGE`) sul progetto Cloudflare Pages della cliente ed eseguire lo schema SQL d'inizializzazione.
+- **Repository Git:** `https://github.com/alebaia81/brilla.git` (Branch `main`).
 
 ---
 
@@ -80,11 +85,10 @@
 
 ---
 
-## 🏗️ Architettura Tecnica
-
-| **Core** | Astro SSG (`output: 'static'`) | Genera pagine HTML statiche in `dist/` + Sitemap XML automatica |
-| **UI Reattiva** | React 19 (`client:load` / `client:visible`) | Carrello Nanostores, Catalogo filtrabile, Checkout, Admin |
-| **Backend & Storage** | Supabase PostgreSQL + Storage | Client-side anon key, RLS off come da specifiche, conversione AVIF |
+| **Core & Hosting** | Astro SSR (`output: 'server'`) su Cloudflare Pages | Output serverless con `@astrojs/cloudflare`, rotte statiche prerenderizzate, compatibilità Pages `_worker.js` e `_routes.json` |
+| **UI Reattiva** | React 19 (`client:load` / `client:visible`) | Carrello Nanostores, Catalogo filtrabile, Checkout, Admin, Realtime polling ordini con chime Web Audio |
+| **Database & Transazioni** | Cloudflare D1 (`brilla-cafe-db`) | SQLite serverless ultra-veloce, batch atomici transazionali per creazione ordini e scalo giacenze |
+| **Media Storage** | Cloudflare R2 (`brilla-prodotti`) | Bucket S3-compatibile con compressione client-side in AVIF prima dell'upload su `/api/upload` |
 | **Pagamenti** | PayPal JS SDK | Client-side per ordini con spedizione |
 | **Notifiche & Contatti** | WhatsApp Direct Link (`wa.me`) | Privilegiato rispetto al telefono in chiaro per privacy e tracciabilità |
 | **Privacy & Cookie** | GDPR Compliance | Pagine `/privacy` e `/cookie` + Banner con localStorage |
