@@ -9,7 +9,13 @@ import cloudflare from '@astrojs/cloudflare';
 export default defineConfig({
   site: 'https://brillacafe.it',
   output: 'server',
-  adapter: cloudflare(),
+  adapter: cloudflare({
+    imageService: 'cloudflare',
+    // @ts-ignore
+    platformProxy: {
+      enabled: true,
+    },
+  }),
   prefetch: true,
   integrations: [
     react(),
