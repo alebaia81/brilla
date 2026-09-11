@@ -16,11 +16,10 @@
     "@astrojs/sitemap": "^3.7.4",
     "@nanostores/react": "^1.1.0",
     "@paypal/react-paypal-js": "^10.4.0",
-    "@supabase/supabase-js": "^2.112.4",
     "@tailwindcss/vite": "^4.3.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",
-    "astro": "^7.2.9",
+    "astro": "^7.3.2",
     "lucide-react": "^1.38.0",
     "nanostores": "^1.5.2",
     "qrcode.react": "^4.2.0",
@@ -30,5 +29,11 @@
   },
   "allowScripts": {
     "esbuild": true
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@astrojs/cloudflare": "^14.3.1",
+    "@cloudflare/workers-types": "^5.20260911.1",
+    "typescript": "^6.0.3"
   }
 }

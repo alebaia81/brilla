@@ -5,7 +5,6 @@
  */
 import Layout from '../../layouts/Layout.astro';
 import ProductDetail from '../../components/prodotto/ProductDetail';
-import { supabase } from '../../lib/supabase';
 import { type Product } from '../../components/catalogo/ProductCard';
 
 export async function getStaticPaths() {
@@ -21,18 +20,6 @@ export async function getStaticPaths() {
     { slug: 'confezione-cioccolatini-praline-250g', nome: 'Confezione Cioccolatini & Praline Fine 250g', marca: 'Venchi', tipo_prodotto: 'bar_gift', prezzo: 14.00, immagine_url: 'https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=800&auto=format&fit=crop&q=80', descrizione: 'Assortimento di praline al cioccolato fondente e al latte piemontesi.' },
     { slug: 'bottiglia-termica-inox-500ml-brilla', nome: 'Bottiglia Termica Inox 500ml Brilla Edition', marca: '24Bottles', tipo_prodotto: 'bar_gift', prezzo: 18.90, immagine_url: 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=800&auto=format&fit=crop&q=80', descrizione: 'Borraccia termica a doppia parete in acciaio inox per bevande calde o fredde.' },
   ];
-
-  try {
-    const { data } = await supabase.from('prodotti').select('*');
-    if (data && data.length > 0) {
-      return data.map((p) => ({
-        params: { slug: p.slug },
-        props: { product: p as Product },
-      }));
-    }
-  } catch (e) {
-    // fallback
-  }
 
   return defaultFallbackProducts.map((p) => ({
     params: { slug: p.slug },

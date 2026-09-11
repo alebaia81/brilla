@@ -3,11 +3,13 @@ import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
 import tailwindcss from '@tailwindcss/vite';
 import sitemap from '@astrojs/sitemap';
+import cloudflare from '@astrojs/cloudflare';
 
 // https://astro.build/config
 export default defineConfig({
   site: 'https://brillacafe.it',
   output: 'static',
+  adapter: cloudflare(),
   prefetch: true,
   integrations: [
     react(),
@@ -15,7 +17,8 @@ export default defineConfig({
       filter: (page) =>
         !page.includes('/admin') &&
         !page.includes('/checkout') &&
-        !page.includes('/conferma'),
+        !page.includes('/conferma') &&
+        !page.includes('/api/'),
     }),
   ],
 

@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { supabase } from '../../lib/supabase';
 import { type Product } from '../catalogo/ProductCard';
 import ProductForm from './ProductForm';
 import { formatPrice } from '../../lib/format';
@@ -20,16 +19,15 @@ export default function ProductManager() {
   const loadProducts = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('prodotti')
-        .select('*')
-        .order('id', { ascending: false });
-
-      if (!error && data) {
+      const res = await fetch('/api/prodotti');
+      if (res.ok) {
+        const data = await res.json();
         setProducts(data as Product[]);
+      } else {
+        console.error('Errore nel caricamento dei prodotti:', await res.text());
       }
     } catch (err) {
-      console.error('Errore nel caricamento dei prodotti:', err);
+      console.error('Errore di rete nel caricamento dei prodotti:', err);
     } finally {
       setLoading(false);
     }
@@ -45,8 +43,13 @@ export default function ProductManager() {
     }
 
     try {
-      const { error } = await supabase.from('prodotti').delete().eq('id', id);
-      if (error) throw error;
+      const res = await fetch(`/api/prodotti?id=${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) {
+        const errData: any = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `Errore HTTP ${res.status}`);
+      }
       setProducts(products.filter((p) => p.id !== id));
     } catch (err: any) {
       alert('Errore durante l\'eliminazione: ' + err.message);
@@ -69,12 +72,16 @@ export default function ProductManager() {
     );
 
     try {
-      const { error } = await supabase
-        .from('prodotti')
-        .update({ disponibile: newStatus })
-        .eq('id', product.id);
+      const res = await fetch('/api/prodotti', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: product.id, disponibile: newStatus }),
+      });
 
-      if (error) throw error;
+      if (!res.ok) {
+        const errData: any = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `Errore HTTP ${res.status}`);
+      }
     } catch (err: any) {
       console.error('Errore aggiornamento stato online:', err);
       alert(`Errore durante l'aggiornamento: ${err.message || 'Riprova tra poco.'}`);

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabase';
 import { Plus, Edit2, Trash2, Save, X, Tag } from 'lucide-react';
 import CategoryBadge from '../catalogo/CategoryBadge';
 
@@ -27,23 +26,17 @@ export default function CategoryManager() {
 
   const loadCategories = async () => {
     try {
-      const { data, error } = await supabase
-        .from('categorie')
-        .select('*')
-        .order('ordine', { ascending: true });
-
-      if (error) {
-        console.error('Errore nel caricamento categorie:', error);
-        return;
-      }
-
-      if (data) {
-        const mapped = (data as any[]).map((c) => ({
-          ...c,
-          tipo: c.tipo_categoria || c.tipo || 'cartoleria',
-          tipo_categoria: c.tipo_categoria || c.tipo || 'cartoleria',
-        }));
-        setCategories(mapped);
+      const res = await fetch('/api/categorie');
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          const mapped = data.map((c) => ({
+            ...c,
+            tipo: c.tipo_categoria || c.tipo || 'cartoleria',
+            tipo_categoria: c.tipo_categoria || c.tipo || 'cartoleria',
+          }));
+          setCategories(mapped);
+        }
       }
     } catch (e) {
       console.error('Errore nel caricamento categorie:', e);
@@ -92,20 +85,20 @@ export default function CategoryManager() {
 
     try {
       if (editingCat) {
-        const { data, error } = await supabase
-          .from('categorie')
-          .update(payload)
-          .eq('id', editingCat.id)
-          .select()
-          .single();
+        const res = await fetch('/api/categorie', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...payload, id: editingCat.id }),
+        });
 
-        if (error) {
-          console.error('ERRORE MODIFICA CATEGORIA:', error);
-          alert(`Errore modifica: ${error.message}`);
+        const resData: any = await res.json();
+        if (!res.ok || !resData.success) {
+          alert(`Errore modifica: ${resData.error || 'Errore HTTP'}`);
           setSaving(false);
           return;
         }
 
+        const data = resData.category;
         if (data) {
           const updated: Category = {
             ...data,
@@ -115,19 +108,20 @@ export default function CategoryManager() {
           setCategories((prev) => prev.map((c) => (c.id === editingCat.id ? updated : c)));
         }
       } else {
-        const { data, error } = await supabase
-          .from('categorie')
-          .insert([payload])
-          .select()
-          .single();
+        const res = await fetch('/api/categorie', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
 
-        if (error) {
-          console.error('ERRORE CREAZIONE CATEGORIA:', error);
-          alert(`Errore creazione: ${error.message}`);
+        const resData: any = await res.json();
+        if (!res.ok || !resData.success) {
+          alert(`Errore creazione: ${resData.error || 'Errore HTTP'}`);
           setSaving(false);
           return;
         }
 
+        const data = resData.category;
         if (data) {
           const newCat: Category = {
             ...data,
@@ -157,10 +151,12 @@ export default function CategoryManager() {
       return;
     }
     try {
-      const { error } = await supabase.from('categorie').delete().eq('id', id);
-      if (error) {
-        console.error('ERRORE ELIMINAZIONE CATEGORIA:', error);
-        alert(`Errore eliminazione: ${error.message}`);
+      const res = await fetch(`/api/categorie?id=${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) {
+        const resData: any = await res.json().catch(() => ({}));
+        alert(`Errore eliminazione: ${resData.error || 'Errore HTTP'}`);
         return;
       }
       setCategories((prev) => prev.filter((c) => c.id !== id));

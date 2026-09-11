@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '@nanostores/react';
 import { $cartStore, clearCart, type CartItem } from '../../lib/cart-store';
-import { supabase } from '../../lib/supabase';
 
 export const CheckoutPage = () => {
   const cart = useStore($cartStore);
@@ -48,7 +47,7 @@ export const CheckoutPage = () => {
   const shippingCost = orderType === 'spedizione' ? 5.90 : 0;
   const finalTotal = subtotal + shippingCost;
 
-  // 1. Invio e salvataggio reale dell'ordine su Supabase
+  // 1. Invio e salvataggio transazionale dell'ordine tramite Cloudflare D1
   const handleConfirmOrder = async () => {
     if (!nome.trim() || !telefono.trim()) {
       setErrorMsg('Per favore compila tutti i campi obbligatori (Nome e Telefono).');
@@ -78,7 +77,6 @@ export const CheckoutPage = () => {
     const orderNumber = `ORD-${dateStr}-${randomSuffix}`;
 
     try {
-      // 1.1 Inserimento Ordine Principale
       const orderPayload = {
         numero_ordine: orderNumber,
         cliente_nome: nome.trim(),
@@ -97,96 +95,44 @@ export const CheckoutPage = () => {
         note_cliente: orderType === 'spedizione' 
           ? `Spedizione: ${indirizzo.trim()}, ${citta.trim()} ${cap.trim()}` 
           : `Ritiro: ${dataRitiro} - Fascia: ${fascia}`,
-      };
-
-      console.log('[ORDINE PAYLOAD]', orderPayload);
-
-      const { data: orderData, error: orderError } = await supabase
-        .from('ordini')
-        .insert([orderPayload])
-        .select()
-        .single();
-
-      if (orderError) {
-        console.error('[ERRORE INSERIMENTO ORDINE SUPABASE]:', orderError);
-        setErrorMsg(`Impossibile registrare l'ordine nel database: ${orderError.message || 'Verifica la connessione o i permessi RLS.'}`);
-        setIsSubmitting(false);
-        return; // NON PROCEDERE AL REDIRECT SE C'È ERRORE!
-      }
-
-      console.log('[ORDINE INSERITO CON SUCCESSO]:', orderData);
-
-      // 1.2 Inserimento Articoli dell'Ordine
-      if (orderData && items.length > 0) {
-        const isValidUUID = (str: any) =>
-          typeof str === 'string' &&
-          /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(str);
-
-        const righe = items.map((item: CartItem) => {
+        articoli: items.map((item: CartItem) => {
           const unitPrice = Number(
             item.prezzo_scontato && item.prezzo_scontato > 0
               ? item.prezzo_scontato
               : (item.prezzo || 0)
           );
           const itemQty = Number(item.quantita || 1);
-          const itemName = item.nome || 'Articolo';
-          const sub = Number((unitPrice * itemQty).toFixed(2));
-
           return {
-            ordine_id: orderData.id,
-            prodotto_id: isValidUUID(item.id) ? String(item.id) : null,
-            nome_prodotto: itemName,
+            prodotto_id: item.id ? String(item.id) : null,
+            nome_prodotto: item.nome || 'Articolo',
             quantita: itemQty,
             prezzo_unitario: unitPrice,
-            prezzo_al_momento: unitPrice,
-            subtotale: sub,
+            subtotale: Number((unitPrice * itemQty).toFixed(2)),
           };
-        });
+        }),
+      };
 
-        const { error: itemsError } = await supabase
-          .from('ordine_articoli')
-          .insert(righe);
+      console.log('[ORDINE PAYLOAD A /api/ordini]:', orderPayload);
 
-        if (itemsError) {
-          console.error('[ERRORE INSERIMENTO ARTICOLI ORDINE]:', itemsError);
-        } else {
-          console.log('[ARTICOLI ORDINE INSERITI CON SUCCESSO]:', righe.length);
-        }
+      const response = await fetch('/api/ordini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderPayload),
+      });
 
-        // 1.3 Scalo effettivo della giacenza su Supabase (Gestione Scorte e Concorrenza)
-        for (const item of items) {
-          if (isValidUUID(item.id)) {
-            const itemQty = Number(item.quantita || 1);
-            try {
-              const { data: prodData } = await supabase
-                .from('prodotti')
-                .select('quantita_disponibile')
-                .eq('id', item.id)
-                .single();
-
-              if (prodData && prodData.quantita_disponibile != null) {
-                const newStock = Math.max(0, prodData.quantita_disponibile - itemQty);
-                await supabase
-                  .from('prodotti')
-                  .update({
-                    quantita_disponibile: newStock,
-                    disponibile: newStock > 0,
-                  })
-                  .eq('id', item.id);
-              }
-            } catch (errStock) {
-              console.warn(`Impossibile scalare giacenza per prodotto ${item.id}:`, errStock);
-            }
-          }
-        }
+      const resData: any = await response.json();
+      if (!response.ok || !resData.success) {
+        throw new Error(resData.error || `Errore HTTP ${response.status}`);
       }
 
-      // 1.4 Pulisci il carrello ed esegui il redirect solo dopo il successo su Supabase
+      console.log('[ORDINE SALVATO SU D1]:', resData);
+
+      // Pulisci il carrello ed effettua il redirect alla pagina di conferma
       clearCart();
       window.location.href = `/conferma?ordine=${orderNumber}&tipo=${orderType}&nome=${encodeURIComponent(nome)}&telefono=${encodeURIComponent(telefono)}&totale=${finalTotal.toFixed(2)}&fascia=${encodeURIComponent(fascia)}&data=${encodeURIComponent(dataRitiro)}`;
     } catch (err: any) {
       console.error('[ECCEZIONE CREAZIONE ORDINE]:', err);
-      setErrorMsg(`Errore imprevisto: ${err.message || 'Riprova tra poco.'}`);
+      setErrorMsg(`Errore registrazione ordine: ${err.message || 'Riprova tra poco.'}`);
       setIsSubmitting(false);
     }
   };

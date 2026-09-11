@@ -1,6 +1,5 @@
 import React, { useState, useRef } from 'react';
 import { compressAndConvertToAvif, type CompressionResult } from '../../lib/image-utils';
-import { supabase } from '../../lib/supabase';
 import { UploadCloud, Image as ImageIcon, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 
 interface ImageUploaderProps {
@@ -24,7 +23,7 @@ export default function ImageUploader({ currentImageUrl, onImageUploaded }: Imag
     setCompressing(true);
 
     try {
-      // 1. Compressione e conversione client-side in AVIF
+      // 1. Compressione e conversione client-side in AVIF ultra-leggero
       const result = await compressAndConvertToAvif(file, 1000, 1000, 0.82);
       setCompressionInfo(result);
 
@@ -32,33 +31,28 @@ export default function ImageUploader({ currentImageUrl, onImageUploaded }: Imag
       const localPreviewUrl = URL.createObjectURL(result.blob);
       setPreview(localPreviewUrl);
 
-      // 2. Upload su Supabase Storage bucket 'product-images'
+      // 2. Upload diretto su Cloudflare R2 tramite endpoint /api/upload
       setCompressing(false);
       setUploading(true);
 
-      const filePath = `products/${result.filename}`;
-      const { data, error: uploadError } = await supabase.storage
-        .from('product-images')
-        .upload(filePath, result.blob, {
-          contentType: result.format,
-          upsert: true,
-        });
+      const formData = new FormData();
+      formData.append('file', result.blob, result.filename);
 
-      if (uploadError) {
-        throw new Error(uploadError.message);
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const resData: any = await response.json();
+      if (!response.ok || !resData.url) {
+        throw new Error(resData.error || `Errore HTTP ${response.status}`);
       }
 
-      // 3. Ottieni Public URL
-      const { data: publicData } = supabase.storage
-        .from('product-images')
-        .getPublicUrl(filePath);
-
-      const finalUrl = publicData.publicUrl;
+      const finalUrl = resData.url;
       onImageUploaded(finalUrl);
     } catch (err: any) {
       console.error('Errore durante upload/compressione immagine:', err);
-      // Se fallisce l'upload su Supabase (es. Storage non configurato in test), usiamo la preview locale
-      setError('Caricamento su Supabase Storage fallito. Verifica la policy del bucket.');
+      setError('Caricamento su Cloudflare R2 non riuscito: ' + (err.message || 'Verifica la connessione.'));
       if (preview) {
         onImageUploaded(preview);
       }

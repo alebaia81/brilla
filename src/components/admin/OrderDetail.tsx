@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabase';
 import { formatPrice, formatDate } from '../../lib/format';
 import { buildWhatsAppLink, generateStatusMessage } from '../../lib/whatsapp';
 import { 
@@ -17,7 +16,7 @@ import {
 } from 'lucide-react';
 
 export interface Order {
-  id: number;
+  id: number | string;
   numero_ordine: string;
   cliente_nome: string;
   cliente_email: string;
@@ -35,6 +34,7 @@ export interface Order {
   note_cliente?: string | null;
   pagamento_id_paypal?: string | null;
   created_at: string;
+  ordine_articoli?: any[];
 }
 
 interface OrderDetailProps {
@@ -44,36 +44,48 @@ interface OrderDetailProps {
 }
 
 export default function OrderDetail({ order, onBack, onOrderUpdated }: OrderDetailProps) {
-  const [items, setItems] = useState<any[]>([]);
+  const [items, setItems] = useState<any[]>(order.ordine_articoli || []);
   const [currentStatus, setCurrentStatus] = useState(order.stato);
   const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
+    if (order.ordine_articoli && order.ordine_articoli.length > 0) {
+      setItems(order.ordine_articoli);
+      return;
+    }
+
     async function loadItems() {
       try {
-        const { data } = await supabase
-          .from('ordine_articoli')
-          .select('*')
-          .eq('ordine_id', order.id);
-
-        if (data) setItems(data);
+        const res = await fetch('/api/ordini');
+        if (res.ok) {
+          const allOrders: any = await res.json();
+          const found = (Array.isArray(allOrders) ? allOrders : []).find((o: any) => String(o.id) === String(order.id));
+          if (found && found.ordine_articoli) {
+            setItems(found.ordine_articoli);
+          }
+        }
       } catch (err) {
         console.error('Errore nel caricamento degli articoli dell\'ordine:', err);
       }
     }
 
     loadItems();
-  }, [order.id]);
+  }, [order.id, order.ordine_articoli]);
 
   const handleStatusChange = async (newStatus: any) => {
     setUpdating(true);
     try {
-      const { error } = await supabase
-        .from('ordini')
-        .update({ stato: newStatus })
-        .eq('id', order.id);
+      const res = await fetch('/api/ordini', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: order.id, stato: newStatus }),
+      });
 
-      if (error) throw error;
+      if (!res.ok) {
+        const errData: any = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `Errore HTTP ${res.status}`);
+      }
+
       setCurrentStatus(newStatus);
       onOrderUpdated();
     } catch (err: any) {

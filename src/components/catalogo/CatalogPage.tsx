@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { supabase } from '../../lib/supabase';
 import ProductCard, { type Product } from './ProductCard';
 import FilterSidebar from './FilterSidebar';
 import { SlidersHorizontal, PackageX, Sparkles } from 'lucide-react';
@@ -241,26 +240,27 @@ export default function CatalogPage({ initialTipo = 'all' }: CatalogPageProps) {
     }
   }, []);
 
-  // Fetch Prodotti e Categorie da Supabase (solo articoli disponibili e con giacenza > 0)
+  // Fetch Prodotti e Categorie da Cloudflare D1 (solo articoli disponibili e con giacenza > 0)
   useEffect(() => {
     async function loadData() {
       try {
         const [prodRes, catRes] = await Promise.all([
-          supabase
-            .from('prodotti')
-            .select('*')
-            .eq('disponibile', true)
-            .gt('quantita_disponibile', 0)
-            .order('id', { ascending: true }),
-          supabase.from('categorie').select('*').order('ordine', { ascending: true })
+          fetch('/api/prodotti?pubblico=true'),
+          fetch('/api/categorie')
         ]);
 
-        if (!prodRes.error && prodRes.data && prodRes.data.length > 0) {
-          setProducts(prodRes.data as Product[]);
+        if (prodRes.ok) {
+          const prods = await prodRes.json();
+          if (Array.isArray(prods) && prods.length > 0) {
+            setProducts(prods as Product[]);
+          }
         }
 
-        if (!catRes.error && catRes.data && catRes.data.length > 0) {
-          setCategories(catRes.data as Category[]);
+        if (catRes.ok) {
+          const cats = await catRes.json();
+          if (Array.isArray(cats) && cats.length > 0) {
+            setCategories(cats as Category[]);
+          }
         }
       } catch (err) {
         console.warn('Uso i dati fallback per il catalogo:', err);

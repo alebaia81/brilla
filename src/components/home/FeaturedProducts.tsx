@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabase';
 import ProductCard, { type Product } from '../catalogo/ProductCard';
 import { Sparkles, ArrowRight } from 'lucide-react';
 
@@ -72,19 +71,16 @@ export default function FeaturedProducts() {
   useEffect(() => {
     async function fetchFeatured() {
       try {
-        const { data, error } = await supabase
-          .from('prodotti')
-          .select('*')
-          .eq('in_evidenza', true)
-          .eq('disponibile', true)
-          .gt('quantita_disponibile', 0)
-          .limit(8);
-
-        if (!error && data && data.length > 0) {
-          setProducts(data as Product[]);
+        const res = await fetch('/api/prodotti?pubblico=true');
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            const featuredOnly = data.filter((p: Product) => p.in_evidenza).slice(0, 8);
+            setProducts(featuredOnly.length > 0 ? featuredOnly : data.slice(0, 8));
+          }
         }
       } catch (err) {
-        console.warn('Supabase offline o non ancora configurato, uso i prodotti mockup:', err);
+        console.warn('API non raggiungibile, uso i prodotti mockup in evidenza:', err);
       } finally {
         setLoading(false);
       }

@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabase';
+import React, { useEffect, useState, useRef } from 'react';
 import { formatPrice, formatDate } from '../../lib/format';
 import OrderDetail, { type Order } from './OrderDetail';
 import { Store, Truck, Search, Eye, Filter, RefreshCw, Bell, X, Sparkles, ArrowRight } from 'lucide-react';
@@ -11,20 +10,28 @@ export default function OrdersTable() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [newOrderBanner, setNewOrderBanner] = useState<Order | null>(null);
+  const previousOrderIds = useRef<Set<string | number>>(new Set());
 
   const loadOrders = async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('ordini')
-        .select('*, ordine_articoli(*)')
-        .order('created_at', { ascending: false });
+      const res = await fetch('/api/ordini');
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          // Rileva se è arrivato un nuovo ordine tramite confronto ID
+          if (previousOrderIds.current.size > 0 && data.length > 0) {
+            const first = data[0];
+            if (!previousOrderIds.current.has(first.id)) {
+              setNewOrderBanner(first as Order);
+            }
+          }
 
-      if (error) {
-        console.error('[ADMIN ORDERS FETCH ERROR]:', error);
-      } else if (data) {
-        console.log('[ADMIN ORDERS FETCH SUCCESS]:', data.length, 'ordini caricati');
-        setOrders(data as Order[]);
+          previousOrderIds.current = new Set(data.map((o: any) => o.id));
+          setOrders(data as Order[]);
+        }
+      } else {
+        console.error('[ADMIN ORDERS FETCH ERROR]:', await res.text());
       }
     } catch (err) {
       console.error('Errore nel caricamento ordini:', err);
@@ -37,38 +44,12 @@ export default function OrdersTable() {
     // Fetch iniziale
     loadOrders();
 
-    // Realtime Channel
-    const channel = supabase
-      .channel('schema-db-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'ordini',
-        },
-        (payload) => {
-          console.log('⚡ Nuovo ordine Realtime intercettato:', payload.new);
-          const newOrder = payload.new as Order;
-          setOrders((prev) => {
-            const exists = prev.some((o) => o.id === newOrder.id);
-            if (exists) return prev;
-            return [newOrder, ...prev];
-          });
-          setNewOrderBanner(newOrder);
-        }
-      )
-      .subscribe((status) => {
-        console.log('📡 Realtime status:', status);
-      });
-
-    // Fallback polling di sicurezza ogni 15 secondi (non blocca la UI)
+    // Polling automatico ogni 15 secondi per nuovi ordini
     const interval = setInterval(() => {
-      loadOrders(true); // silent refresh
+      loadOrders(true); // silent refresh in background
     }, 15000);
 
     return () => {
-      supabase.removeChannel(channel);
       clearInterval(interval);
     };
   }, []);

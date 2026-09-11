@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabase';
 import { formatPrice } from '../../lib/format';
 import { addToCart } from '../../lib/cart-store';
 import CategoryBadge from '../catalogo/CategoryBadge';
@@ -12,9 +11,10 @@ import {
   Store, 
   Truck, 
   Calendar, 
-  ArrowLeft,
-  PackageX,
-  RotateCcw
+  ArrowLeft, 
+  PackageX, 
+  RotateCcw,
+  Share2
 } from 'lucide-react';
 
 // Database di fallback completo con tutti gli articoli di prova
@@ -200,15 +200,15 @@ export default function ProductDetail({ slug }: ProductDetailProps) {
     async function loadProduct() {
       if (!slug) return;
       try {
-        const { data, error } = await supabase
-          .from('prodotti')
-          .select('*')
-          .eq('slug', slug)
-          .single();
-
-        if (!error && data) {
-          setProduct(data as Product);
-        } else if (ALL_FALLBACK_PRODUCTS[slug]) {
+        const res = await fetch(`/api/prodotti?slug=${encodeURIComponent(slug)}`);
+        if (res.ok) {
+          const data: any = await res.json();
+          if (data && data.id) {
+            setProduct(data as Product);
+            return;
+          }
+        }
+        if (ALL_FALLBACK_PRODUCTS[slug]) {
           setProduct(ALL_FALLBACK_PRODUCTS[slug]);
         }
       } catch (err) {

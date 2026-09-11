@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
 import { slugify, formatPrice } from '../../lib/format';
 import ImageUploader from './ImageUploader';
 import { type Product } from '../catalogo/ProductCard';
@@ -42,13 +41,12 @@ export default function ProductForm({ initialProduct, onSave, onCancel }: Produc
   useEffect(() => {
     async function loadCategories() {
       try {
-        const { data, error } = await supabase
-          .from('categorie')
-          .select('id, nome, slug, tipo_categoria, ordine')
-          .order('ordine', { ascending: true });
-
-        if (!error && data && data.length > 0) {
-          setCategories(data as CategoryOption[]);
+        const res = await fetch('/api/categorie');
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            setCategories(data as CategoryOption[]);
+          }
         }
       } catch (err) {
         console.warn('Uso categorie fallback in ProductForm:', err);
@@ -146,19 +144,20 @@ export default function ProductForm({ initialProduct, onSave, onCancel }: Produc
     };
 
     try {
-      if (initialProduct?.id) {
-        const { error: updateError } = await supabase
-          .from('prodotti')
-          .update(payload)
-          .eq('id', initialProduct.id);
+      const isEditing = Boolean(initialProduct?.id);
+      const url = '/api/prodotti';
+      const method = isEditing ? 'PUT' : 'POST';
+      const bodyPayload = isEditing ? { ...payload, id: initialProduct?.id } : payload;
 
-        if (updateError) throw updateError;
-      } else {
-        const { error: insertError } = await supabase
-          .from('prodotti')
-          .insert(payload);
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bodyPayload),
+      });
 
-        if (insertError) throw insertError;
+      if (!res.ok) {
+        const errData: any = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `Errore HTTP ${res.status}`);
       }
 
       onSave();
