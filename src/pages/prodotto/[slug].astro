@@ -7,6 +7,8 @@ import Layout from '../../layouts/Layout.astro';
 import ProductDetail from '../../components/prodotto/ProductDetail';
 import { type Product } from '../../components/catalogo/ProductCard';
 
+export const prerender = true;
+
 export async function getStaticPaths() {
   const defaultFallbackProducts = [
     { slug: 'set-10-penne-sfera-retrattili', nome: 'Set 10 Penne a Sfera Retrattili Soft Touch', marca: 'BIC', tipo_prodotto: 'cartoleria', prezzo: 6.50, immagine_url: 'https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=800&auto=format&fit=crop&q=80', descrizione: 'Set professionale a sfera scorrevole con impugnatura soft touch gommata.' },

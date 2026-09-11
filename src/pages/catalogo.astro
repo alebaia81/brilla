@@ -6,6 +6,8 @@
 import Layout from '../layouts/Layout.astro';
 import CatalogPage from '../components/catalogo/CatalogPage';
 
+export const prerender = true;
+
 // Estrai eventuale filtro tipo iniziale dai parametri URL server-side (se presenti)
 const url = Astro.url;
 const initialTipo = url.searchParams.get('tipo') || 'all';

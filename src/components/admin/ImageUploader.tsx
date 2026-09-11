@@ -43,9 +43,15 @@ export default function ImageUploader({ currentImageUrl, onImageUploaded }: Imag
         body: formData,
       });
 
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Upload failed with status:', response.status, errorText);
+        throw new Error(`Errore upload (${response.status}): ${errorText || response.statusText}`);
+      }
+
       const resData: any = await response.json();
-      if (!response.ok || !resData.url) {
-        throw new Error(resData.error || `Errore HTTP ${response.status}`);
+      if (!resData || !resData.url) {
+        throw new Error(resData?.error || 'Nessun URL restituito dal server');
       }
 
       const finalUrl = resData.url;
