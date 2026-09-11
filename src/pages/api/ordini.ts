@@ -16,12 +16,41 @@ function getDb(locals: any): any {
   return undefined;
 }
 
-export const GET: APIRoute = async ({ locals }) => {
+export const GET: APIRoute = async ({ request, locals }) => {
   try {
     const db = getDb(locals);
     if (!db) {
       return new Response(JSON.stringify({ error: 'Database D1 non disponibile o binding DB mancante' }), {
         status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const url = new URL(request.url);
+    const checkLatest = url.searchParams.get('check_latest') === 'true';
+    const lastId = url.searchParams.get('last_id');
+
+    // Endpoint ultraleggero di polling: 1 sola query limitata a 1 riga senza join su ordine_articoli
+    if (checkLatest) {
+      const latestOrder = await db.prepare(
+        'SELECT id, numero_ordine, cliente_nome, cliente_telefono, tipo_ordine, stato, totale_ordine, creato_il FROM ordini ORDER BY creato_il DESC LIMIT 1'
+      ).first();
+
+      if (!latestOrder) {
+        return new Response(JSON.stringify({ has_new: false, latest: null }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Se viene fornito last_id, controlla se l'id più recente è diverso da quello già noto al client
+      const hasNew = Boolean(lastId && String(latestOrder.id) !== String(lastId));
+
+      return new Response(JSON.stringify({
+        has_new: hasNew,
+        latest: latestOrder,
+      }), {
+        status: 200,
         headers: { 'Content-Type': 'application/json' },
       });
     }

@@ -1,7 +1,48 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { formatPrice, formatDate } from '../../lib/format';
 import OrderDetail, { type Order } from './OrderDetail';
-import { Store, Truck, Search, Eye, Filter, RefreshCw, Bell, X, Sparkles, ArrowRight } from 'lucide-react';
+import { Store, Truck, Search, Eye, RefreshCw, Bell, X, Sparkles, ArrowRight, Volume2, VolumeX } from 'lucide-react';
+
+// Generatore di suono notifica leggero e compatibile tramite Web Audio API nativa
+function playNotificationChime() {
+  try {
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
+    if (ctx.state === 'suspended') {
+      ctx.resume().catch(() => {});
+    }
+    const now = ctx.currentTime;
+
+    // Nota 1 (D5 - 587.33 Hz)
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(587.33, now);
+    gain1.gain.setValueAtTime(0, now);
+    gain1.gain.linearRampToValueAtTime(0.3, now + 0.02);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc1.start(now);
+    osc1.stop(now + 0.22);
+
+    // Nota 2 (A5 - 880 Hz, brillante e squillante)
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(880, now + 0.12);
+    gain2.gain.setValueAtTime(0, now + 0.12);
+    gain2.gain.linearRampToValueAtTime(0.35, now + 0.15);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.start(now + 0.12);
+    osc2.stop(now + 0.45);
+  } catch (e) {
+    console.debug('Audio notification not allowed or unsupported:', e);
+  }
+}
 
 export default function OrdersTable() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -10,7 +51,25 @@ export default function OrdersTable() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [newOrderBanner, setNewOrderBanner] = useState<Order | null>(null);
-  const previousOrderIds = useRef<Set<string | number>>(new Set());
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('brilla_admin_sound') !== 'false';
+    }
+    return true;
+  });
+
+  const lastKnownIdRef = useRef<string | number | null>(null);
+
+  const toggleSound = () => {
+    const next = !soundEnabled;
+    setSoundEnabled(next);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('brilla_admin_sound', String(next));
+    }
+    if (next) {
+      playNotificationChime();
+    }
+  };
 
   const loadOrders = async (silent = false) => {
     if (!silent) setLoading(true);
@@ -19,15 +78,9 @@ export default function OrdersTable() {
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data)) {
-          // Rileva se è arrivato un nuovo ordine tramite confronto ID
-          if (previousOrderIds.current.size > 0 && data.length > 0) {
-            const first = data[0];
-            if (!previousOrderIds.current.has(first.id)) {
-              setNewOrderBanner(first as Order);
-            }
+          if (data.length > 0) {
+            lastKnownIdRef.current = data[0].id;
           }
-
-          previousOrderIds.current = new Set(data.map((o: any) => o.id));
           setOrders(data as Order[]);
         }
       } else {
@@ -41,18 +94,35 @@ export default function OrdersTable() {
   };
 
   useEffect(() => {
-    // Fetch iniziale
+    // Caricamento ordini iniziale
     loadOrders();
 
-    // Polling automatico ogni 15 secondi per nuovi ordini
-    const interval = setInterval(() => {
-      loadOrders(true); // silent refresh in background
-    }, 15000);
+    // Polling ultraleggero ogni 7 secondi per rilevare nuovi ordini in tempo reale
+    const interval = setInterval(async () => {
+      try {
+        const lastId = lastKnownIdRef.current;
+        if (!lastId) return;
+
+        const res = await fetch(`/api/ordini?check_latest=true&last_id=${encodeURIComponent(String(lastId))}`);
+        if (!res.ok) return;
+
+        const result = (await res.json()) as any;
+        if (result && result.has_new && result.latest) {
+          setNewOrderBanner(result.latest as Order);
+          lastKnownIdRef.current = result.latest.id;
+          if (soundEnabled) {
+            playNotificationChime();
+          }
+        }
+      } catch (e) {
+        // Silenzia errori temporanei di rete nel polling in background
+      }
+    }, 7000);
 
     return () => {
       clearInterval(interval);
     };
-  }, []);
+  }, [soundEnabled]);
 
   if (selectedOrder) {
     return (
@@ -101,49 +171,72 @@ export default function OrdersTable() {
     }
   };
 
+  const handleBannerDismiss = () => {
+    setNewOrderBanner(null);
+  };
+
+  const handleBannerRefresh = async () => {
+    setNewOrderBanner(null);
+    await loadOrders();
+  };
+
   return (
     <div className="space-y-6">
       
-      {/* Banner Notifica Nuovo Ordine Realtime */}
+      {/* Banner Notifica Nuovo Ordine Realtime Lampeggiante */}
       {newOrderBanner && (
-        <div className="relative overflow-hidden bg-gradient-to-r from-amber-500 via-brand-amber to-amber-600 text-brand-dark p-4 sm:p-5 rounded-3xl shadow-lg border border-amber-400/40 animate-fade-in flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div 
+          onClick={handleBannerRefresh}
+          className="relative overflow-hidden bg-gradient-to-r from-amber-500 via-rose-600 to-amber-600 text-white p-4 sm:p-5 rounded-3xl shadow-2xl border-2 border-amber-300 ring-4 ring-rose-500/40 animate-pulse flex flex-col md:flex-row items-start md:items-center justify-between gap-4 cursor-pointer transition-all hover:brightness-105"
+        >
           <div className="flex items-start sm:items-center gap-3.5">
-            <div className="w-10 h-10 rounded-2xl bg-white/90 flex items-center justify-center shrink-0 shadow-sm">
-              <Bell className="w-5 h-5 text-amber-700 animate-bounce" />
+            <div className="w-12 h-12 rounded-2xl bg-white text-rose-600 flex items-center justify-center shrink-0 shadow-md">
+              <Bell className="w-6 h-6 animate-bounce" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1 text-[11px] font-black uppercase tracking-wider bg-white/80 px-2 py-0.5 rounded-full text-brand-dark">
-                  <Sparkles className="w-3 h-3 text-amber-600" />
-                  Nuovo Ordine in Arrivo!
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider bg-white text-rose-700 px-3 py-1 rounded-full shadow-xs">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                  Nuovo ordine ricevuto! Clicca per aggiornare la lista
                 </span>
-                <span className="text-xs font-mono font-bold text-white/90">
+                <span className="text-xs font-mono font-bold bg-black/30 px-2 py-0.5 rounded-lg text-white">
                   {newOrderBanner.numero_ordine}
                 </span>
               </div>
-              <p className="text-xs sm:text-sm font-extrabold text-white mt-1">
-                {newOrderBanner.cliente_nome} ha effettuato un ordine da {formatPrice(newOrderBanner.totale_ordine)} ({newOrderBanner.tipo_ordine === 'ritiro' ? 'Scegli & Ritira' : 'Spedizione a domicilio'})
+              <p className="text-xs sm:text-sm font-extrabold text-white mt-1.5">
+                {newOrderBanner.cliente_nome} ha ordinato per {formatPrice(newOrderBanner.totale_ordine)} ({newOrderBanner.tipo_ordine === 'ritiro' ? 'Ritiro al Banco' : 'Spedizione a domicilio'})
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 self-end md:self-auto shrink-0">
+          <div 
+            className="flex items-center gap-2 self-end md:self-auto shrink-0"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={handleBannerRefresh}
+              className="px-4 py-2.5 bg-white text-rose-700 hover:bg-rose-50 transition-all rounded-xl font-black text-xs inline-flex items-center gap-1.5 shadow-md cursor-pointer"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Aggiorna Lista</span>
+            </button>
             <button
               type="button"
               onClick={() => {
                 setSelectedOrder(newOrderBanner);
                 setNewOrderBanner(null);
               }}
-              className="px-4 py-2 bg-brand-dark text-white hover:bg-white hover:text-brand-dark transition-all rounded-xl font-bold text-xs inline-flex items-center gap-1.5 shadow-sm cursor-pointer"
+              className="px-4 py-2.5 bg-brand-dark text-white hover:bg-neutral-800 transition-all rounded-xl font-bold text-xs inline-flex items-center gap-1.5 shadow-md cursor-pointer"
             >
-              <span>Gestisci Subito</span>
+              <span>Gestisci</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
             <button
               type="button"
-              onClick={() => setNewOrderBanner(null)}
-              className="p-2 bg-white/20 hover:bg-white/40 text-white rounded-xl transition-colors cursor-pointer"
-              title="Chiudi avviso"
+              onClick={handleBannerDismiss}
+              className="p-2.5 bg-black/30 hover:bg-black/50 text-white rounded-xl transition-colors cursor-pointer"
+              title="Silenzia / Chiudi avviso"
             >
               <X className="w-4 h-4" />
             </button>
@@ -160,14 +253,40 @@ export default function OrdersTable() {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => loadOrders()}
-          className="p-2.5 rounded-xl bg-brand-cream hover:bg-brand-dark hover:text-white transition-colors self-start sm:self-auto"
-          title="Ricarica ordini"
-        >
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-        </button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          {/* Toggle Suono Notifiche */}
+          <button
+            type="button"
+            onClick={toggleSound}
+            className={`p-2.5 rounded-xl border transition-colors flex items-center gap-1.5 text-xs font-bold cursor-pointer ${
+              soundEnabled
+                ? 'bg-amber-50 border-amber-200 text-amber-900 hover:bg-amber-100'
+                : 'bg-neutral-100 border-neutral-200 text-neutral-500 hover:bg-neutral-200'
+            }`}
+            title={soundEnabled ? 'Suono notifiche attivo (clicca per silenziare)' : 'Suono notifiche disattivato (clicca per attivare)'}
+          >
+            {soundEnabled ? (
+              <>
+                <Volume2 className="w-4 h-4 text-amber-600" />
+                <span className="hidden sm:inline">Suono Attivo</span>
+              </>
+            ) : (
+              <>
+                <VolumeX className="w-4 h-4 text-neutral-400" />
+                <span className="hidden sm:inline">Muto</span>
+              </>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => loadOrders()}
+            className="p-2.5 rounded-xl bg-brand-cream hover:bg-brand-dark hover:text-white transition-colors cursor-pointer"
+            title="Ricarica ordini"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
       </div>
 
       {/* Controlli Filtri & Search */}
