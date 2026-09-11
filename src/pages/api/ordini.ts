@@ -5,7 +5,7 @@ export const prerender = false;
 
 export const GET: APIRoute = async () => {
   try {
-    const db = env.DB;
+    const db = typeof env !== 'undefined' ? env?.DB : undefined;
     if (!db) {
       return new Response(JSON.stringify({ error: 'Database D1 non disponibile o binding DB mancante' }), {
         status: 500,
@@ -60,7 +60,7 @@ export const GET: APIRoute = async () => {
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const db = env.DB;
+    const db = typeof env !== 'undefined' ? env?.DB : undefined;
     if (!db) {
       return new Response(JSON.stringify({ error: 'Database D1 non disponibile' }), {
         status: 500,
@@ -163,7 +163,7 @@ export const POST: APIRoute = async ({ request }) => {
 
 export const PUT: APIRoute = async ({ request }) => {
   try {
-    const db = env.DB;
+    const db = typeof env !== 'undefined' ? env?.DB : undefined;
     if (!db) {
       return new Response(JSON.stringify({ error: 'Database D1 non disponibile' }), {
         status: 500,

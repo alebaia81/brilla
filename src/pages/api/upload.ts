@@ -7,9 +7,9 @@ const R2_PUBLIC_BASE_URL = 'https://pub-7ca92debbf604b7bb0c88ae6e9d4e4df.r2.dev'
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const storage = env.STORAGE;
+    const storage = typeof env !== 'undefined' ? env?.STORAGE : undefined;
     if (!storage) {
-      return new Response(JSON.stringify({ error: 'Bucket R2 non disponibile o binding STORAGE mancante' }), {
+      return new Response(JSON.stringify({ error: 'Bucket R2 non disponibile o binding STORAGE mancante nel runtime Cloudflare' }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' },
       });
