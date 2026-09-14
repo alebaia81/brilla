@@ -31,7 +31,7 @@ interface ProductCardProps {
 export default function ProductCard({ product }: ProductCardProps) {
   const [added, setAdded] = React.useState(false);
 
-  // Allineamento colonna standard Supabase immagine_url
+  // Allineamento colonna immagine_url
   const imgSrc = product.immagine_url || 'https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=600&auto=format&fit=crop&q=80';
 
   const activePrice = product.prezzo_scontato && product.prezzo_scontato > 0 

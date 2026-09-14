@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import ProductCard, { type Product } from '../catalogo/ProductCard';
 import { Sparkles, ArrowRight } from 'lucide-react';
 
-// Dati di fallback eleganti se il DB Supabase non è ancora popolato o offline
+// Dati di fallback eleganti se il DB D1 non è ancora popolato o offline
 const FALLBACK_FEATURED: Product[] = [
   {
     id: 1,

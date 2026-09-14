@@ -7,11 +7,11 @@
 
 ## ⚡ Stack Tecnologico
 
-- **Framework:** [Astro 5](https://astro.build/) (`output: 'static'`) — Static Site Generation ultra-veloce con zero JS non necessario.
+- **Framework:** [Astro 5](https://astro.build/) (`output: 'server'`) su **Cloudflare Pages** con `@astrojs/cloudflare`.
 - **UI & Isole Interattive:** [React 19](https://react.dev/) (`client:load`, `client:visible`).
 - **Styling & Design System:** [Tailwind CSS 4](https://tailwindcss.com/) — Mobile-first, palette dedicata e accessibilità WCAG 2.1 AA.
 - **State Management:** [Nanostores](https://github.com/nanostores/nanostores) con persistenza in `localStorage`.
-- **Database & Media:** [Supabase](https://supabase.com/) (PostgreSQL + Storage buckets per immagini convertite in AVIF).
+- **Database & Media:** **Cloudflare D1** (SQLite serverless transazionale) + **Cloudflare R2** (Storage bucket S3-compatibile per immagini AVIF).
 - **Pagamenti & Notifiche:** PayPal JS SDK per pagamenti online e notifiche ordini dirette via WhatsApp direct links (`wa.me`).
 - **SEO & Structured Data:** `@astrojs/sitemap`, Canonical URLs, OpenGraph e Schema.org JSON-LD (`LocalBusiness`, `Product`, `BreadcrumbList`, `FAQPage`).
 
@@ -78,9 +78,8 @@ npm run preview
 Crea un file `.env` nella radice del progetto:
 
 ```env
-PUBLIC_SUPABASE_URL=https://tuo-progetto.supabase.co
-PUBLIC_SUPABASE_ANON_KEY=la-tua-anon-key
 PUBLIC_PAYPAL_CLIENT_ID=il-tuo-paypal-client-id
+PUBLIC_R2_URL=https://pub-5d4c665fcec4447e98cc82b828a0e174.r2.dev
 ```
 
 ---
