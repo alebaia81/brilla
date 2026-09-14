@@ -52,21 +52,35 @@ export const POST: APIRoute = async ({ request, locals }) => {
     }
 
     const body: any = await request.json();
-    const id = body.id || crypto.randomUUID();
-    const nome = (body.nome || '').trim();
-    const slug = (body.slug || '').trim() || nome.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-    const tipo_categoria = body.tipo_categoria || body.tipo || 'cartoleria';
-    const descrizione = body.descrizione != null ? String(body.descrizione).trim() : null;
-    const ordine = parseInt(body.ordine, 10) || 0;
+    const id = String(body.id || crypto.randomUUID());
+    const nome = String(body.nome || '').trim();
+    const slug = String(body.slug || '').trim() || nome.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    const tipo_categoria = String(body.tipo_categoria || body.tipo || 'cartoleria').trim();
+    const descrizione = body.descrizione != null && String(body.descrizione).trim() !== ''
+      ? String(body.descrizione).trim()
+      : null;
+    const ordine = Number.isInteger(Number(body.ordine)) ? Number(body.ordine) : 0;
+    const now = new Date().toISOString();
 
-    await db.prepare(`
-      INSERT INTO categorie (id, nome, slug, tipo_categoria, descrizione, ordine, creato_il)
-      VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
-    `).bind(id, nome, slug, tipo_categoria, descrizione, ordine).run();
+    try {
+      await db.prepare(`
+        INSERT INTO categorie (id, nome, slug, tipo_categoria, descrizione, ordine, creato_il, aggiornato_il)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `).bind(id, nome, slug, tipo_categoria, descrizione, ordine, now, now).run();
+    } catch (insertErr: any) {
+      if (insertErr?.message && insertErr.message.includes('no such column: aggiornato_il')) {
+        await db.prepare(`
+          INSERT INTO categorie (id, nome, slug, tipo_categoria, descrizione, ordine, creato_il)
+          VALUES (?, ?, ?, ?, ?, ?, ?)
+        `).bind(id, nome, slug, tipo_categoria, descrizione, ordine, now).run();
+      } else {
+        throw insertErr;
+      }
+    }
 
     return new Response(JSON.stringify({
       success: true,
-      category: { id, nome, slug, tipo_categoria, tipo: tipo_categoria, descrizione, ordine }
+      category: { id, nome, slug, tipo_categoria, tipo: tipo_categoria, descrizione, ordine, creato_il: now, aggiornato_il: now }
     }), {
       status: 201,
       headers: { 'Content-Type': 'application/json' },

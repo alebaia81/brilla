@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS categorie (
   descrizione    TEXT,
   icona          TEXT,
   ordine         INTEGER DEFAULT 0,
-  creato_il      TEXT DEFAULT (datetime('now'))
+  creato_il      TEXT DEFAULT (datetime('now')),
+  aggiornato_il  TEXT DEFAULT (datetime('now'))
 );
 
 -- Tabella Prodotti
