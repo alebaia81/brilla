@@ -58,7 +58,13 @@ export default function OrdersTable() {
     return true;
   });
 
+  const knownCountRef = useRef<number>(0);
   const lastKnownIdRef = useRef<string | number | null>(null);
+  const soundEnabledRef = useRef(soundEnabled);
+
+  useEffect(() => {
+    soundEnabledRef.current = soundEnabled;
+  }, [soundEnabled]);
 
   const toggleSound = () => {
     const next = !soundEnabled;
@@ -80,7 +86,10 @@ export default function OrdersTable() {
         if (Array.isArray(data)) {
           if (data.length > 0) {
             lastKnownIdRef.current = data[0].id;
+          } else {
+            lastKnownIdRef.current = '__EMPTY__';
           }
+          knownCountRef.current = data.length;
           setOrders(data as Order[]);
         }
       } else {
@@ -97,20 +106,23 @@ export default function OrdersTable() {
     // Caricamento ordini iniziale
     loadOrders();
 
-    // Polling ultraleggero ogni 7 secondi per rilevare nuovi ordini in tempo reale
+    // Polling ultraleggero ogni 7 secondi per verificare variazioni nel totale o nell'ultimo ID ordine
     const interval = setInterval(async () => {
       try {
-        const lastId = lastKnownIdRef.current;
-        if (!lastId) return;
+        const lastId = lastKnownIdRef.current ?? '__EMPTY__';
+        const currentCount = knownCountRef.current;
 
-        const res = await fetch(`/api/ordini?check_latest=true&last_id=${encodeURIComponent(String(lastId))}`);
+        const res = await fetch(`/api/ordini?check_latest=true&last_id=${encodeURIComponent(String(lastId))}&total_count=${currentCount}`);
         if (!res.ok) return;
 
         const result = (await res.json()) as any;
         if (result && result.has_new && result.latest) {
           setNewOrderBanner(result.latest as Order);
           lastKnownIdRef.current = result.latest.id;
-          if (soundEnabled) {
+          if (typeof result.total_count === 'number') {
+            knownCountRef.current = result.total_count;
+          }
+          if (soundEnabledRef.current) {
             playNotificationChime();
           }
         }
@@ -119,10 +131,11 @@ export default function OrdersTable() {
       }
     }, 7000);
 
+    // Pulizia garantita allo smontaggio del componente per prevenire memory leak
     return () => {
       clearInterval(interval);
     };
-  }, [soundEnabled]);
+  }, []);
 
   if (selectedOrder) {
     return (

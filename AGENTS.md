@@ -17,7 +17,7 @@ Sei un Senior Full-Stack Developer specializzato in Astro, React, Tailwind CSS e
 
 3. **Media & Immagini:**
    - Tutte le immagini caricate vengono compresse/convertite in formato **AVIF** lato client prima dell'upload su Cloudflare R2 tramite `/api/upload` (`import { env } from "cloudflare:workers"`, `env.STORAGE`, bucket: `brilla-prodotti`).
-   - CDN pubblica R2: `https://pub-7ca92debbf604b7bb0c88ae6e9d4e4df.r2.dev`.
+   - CDN pubblica R2: `https://pub-5d4c665fcec4447e98cc82b828a0e174.r2.dev`.
 
 4. **Pagamenti & Notifiche:**
    - PayPal gestito client-side tramite `@paypal/react-paypal-js`.

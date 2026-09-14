@@ -30,24 +30,31 @@ export const GET: APIRoute = async ({ request, locals }) => {
     const checkLatest = url.searchParams.get('check_latest') === 'true';
     const lastId = url.searchParams.get('last_id');
 
-    // Endpoint ultraleggero di polling: 1 sola query limitata a 1 riga senza join su ordine_articoli
+    // Endpoint ultraleggero di polling: query veloce senza join pesanti
     if (checkLatest) {
+      const countRes = await db.prepare('SELECT COUNT(*) as count FROM ordini').first();
+      const currentCount = Number(countRes?.count || 0);
+
       const latestOrder = await db.prepare(
         'SELECT id, numero_ordine, cliente_nome, cliente_telefono, tipo_ordine, stato, totale_ordine, creato_il FROM ordini ORDER BY creato_il DESC LIMIT 1'
       ).first();
 
       if (!latestOrder) {
-        return new Response(JSON.stringify({ has_new: false, latest: null }), {
+        return new Response(JSON.stringify({ has_new: false, total_count: 0, latest: null }), {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
         });
       }
 
-      // Se viene fornito last_id, controlla se l'id più recente è diverso da quello già noto al client
-      const hasNew = Boolean(lastId && String(latestOrder.id) !== String(lastId));
+      const clientCount = url.searchParams.get('total_count');
+      const hasCountChanged = clientCount !== null && Number(clientCount) < currentCount;
+      const hasIdChanged = Boolean(lastId && String(latestOrder.id) !== String(lastId) && lastId !== '__EMPTY__');
+      const hasFromEmpty = lastId === '__EMPTY__' && currentCount > 0;
+      const hasNew = hasIdChanged || hasCountChanged || hasFromEmpty;
 
       return new Response(JSON.stringify({
         has_new: hasNew,
+        total_count: currentCount,
         latest: latestOrder,
       }), {
         status: 200,

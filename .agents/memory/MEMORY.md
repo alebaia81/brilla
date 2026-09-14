@@ -8,7 +8,7 @@
 - **Stato:** Migrazione completa da Supabase all'ecosistema **Cloudflare (D1 Database SQLite + R2 Object Storage + Pages)**.
 - **Ambiente Attuale (Test / Sviluppatore):**
   - Database D1: `brilla-cafe-db` (ambiente personale di test dello sviluppatore).
-  - Storage R2: `brilla-prodotti` (CDN pubblica: `https://pub-7ca92debbf604b7bb0c88ae6e9d4e4df.r2.dev`).
+  - Storage R2: `brilla-prodotti` (CDN pubblica: `https://pub-5d4c665fcec4447e98cc82b828a0e174.r2.dev`).
   - Polling ordini realtime (7s) con alert visivo lampeggiante e audio Web Audio API nel pannello admin.
 - **Prossimo Step Operativo (Importante):**
   - Prossimamente verrà collegato l'account Cloudflare ufficiale e definitivo della cliente (ambiente di produzione finale, non più test). Sarà sufficiente collegare i binding D1 (`DB`) e R2 (`STORAGE`) sul progetto Cloudflare Pages della cliente ed eseguire lo schema SQL d'inizializzazione.

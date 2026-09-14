@@ -3,7 +3,7 @@ import { env } from 'cloudflare:workers';
 
 export const prerender = false;
 
-const R2_PUBLIC_BASE_URL = 'https://pub-7ca92debbf604b7bb0c88ae6e9d4e4df.r2.dev';
+const DEFAULT_R2_PUBLIC_BASE_URL = 'https://pub-5d4c665fcec4447e98cc82b828a0e174.r2.dev';
 
 export const POST: APIRoute = async ({ request, locals }) => {
   try {
@@ -58,6 +58,24 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const filename = `${Date.now()}-${uniqueId}-${cleanBaseName}.${extension}`;
     const contentType = file.type || 'image/avif';
 
+    // Risoluzione flessibile del dominio pubblico R2:
+    // 1. Variabile d'ambiente runtime (Cloudflare Pages settings)
+    // 2. Variabile d'ambiente build/Astro (PUBLIC_R2_URL / R2_PUBLIC_URL)
+    // 3. Fallback di sicurezza al nuovo dominio pubblico ufficiale
+    let r2PublicBase = DEFAULT_R2_PUBLIC_BASE_URL;
+    try {
+      const runtimeEnv = (locals as any)?.runtime?.env;
+      const envUrl = runtimeEnv?.PUBLIC_R2_URL || runtimeEnv?.R2_PUBLIC_URL ||
+        ((typeof env !== 'undefined' && env) ? ((env as any).PUBLIC_R2_URL || (env as any).R2_PUBLIC_URL) : undefined) ||
+        import.meta.env.PUBLIC_R2_URL ||
+        import.meta.env.R2_PUBLIC_URL;
+      if (envUrl && typeof envUrl === 'string' && envUrl.trim() !== '') {
+        r2PublicBase = envUrl.trim().replace(/\/$/, '');
+      }
+    } catch {
+      // Fallback a DEFAULT_R2_PUBLIC_BASE_URL
+    }
+
     // Upload diretto sul bucket R2
     const fileBuffer = await file.arrayBuffer();
     await storage.put(filename, fileBuffer, {
@@ -67,7 +85,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       },
     });
 
-    const publicUrl = `${R2_PUBLIC_BASE_URL}/${filename}`;
+    const publicUrl = `${r2PublicBase}/${filename}`;
 
     return new Response(JSON.stringify({
       success: true,
