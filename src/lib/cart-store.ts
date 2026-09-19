@@ -13,6 +13,21 @@ export interface CartItem {
   quantita_disponibile?: number | null;
 }
 
+// Regole Spese di Spedizione Brilla Cafe
+export const FREE_SHIPPING_THRESHOLD = 50.0;
+export const STANDARD_SHIPPING_FEE = 6.5;
+
+/**
+ * Calcola le spese di spedizione in base al subtotale e al tipo di ordine.
+ * - Ritiro in negozio: sempre 0,00 €
+ * - Spedizione a domicilio: 0,00 € se subtotale >= 50 €, altrimenti 6,50 €
+ */
+export function calculateShippingFee(subtotal: number, orderType: 'ritiro' | 'spedizione' = 'spedizione'): number {
+  if (orderType === 'ritiro') return 0;
+  const numSubtotal = Number(subtotal) || 0;
+  return numSubtotal >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING_FEE;
+}
+
 // 1. Chiave unificata LocalStorage
 export const CART_STORAGE_KEY = 'brilla_cafe_cart_v1';
 

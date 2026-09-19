@@ -14,13 +14,21 @@ export default function CartSummary() {
 
   return (
     <div className="pt-4 mt-auto border-t border-brand-dark/10 bg-white/90">
-      <div className="flex justify-between items-baseline mb-2">
-        <span className="text-sm text-brand-dark/70">Subtotale ({totalQuantity} articoli)</span>
-        <span className="text-xl font-bold text-brand-dark">{formatPrice(totalPrice)}</span>
+      <div className="flex justify-between items-baseline mb-1.5">
+        <span className="text-xs text-brand-dark/70 font-medium">Subtotale articoli ({totalQuantity})</span>
+        <span className="text-lg font-bold text-brand-dark">{formatPrice(totalPrice)}</span>
       </div>
-      <p className="text-xs text-brand-dark/50 mb-4">
-        Spese di spedizione o opzione ritiro calcolate al checkout.
-      </p>
+
+      <div className="flex justify-between items-center text-xs mb-3">
+        <span className="text-brand-dark/70">Spedizione a domicilio:</span>
+        <span className="font-bold">
+          {totalPrice >= 50 ? (
+            <span className="text-emerald-700">Gratuita</span>
+          ) : (
+            <span className="text-brand-dark/90">€ 6,50 <span className="text-[10px] font-normal text-brand-dark/60">(Gratis al Bar)</span></span>
+          )}
+        </span>
+      </div>
       
       <div className="flex flex-col gap-2">
         <a

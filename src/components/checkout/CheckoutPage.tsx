@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
-import { $cartStore, clearCart, syncWithLocalStorage, readLocalStorage, type CartItem } from '../../lib/cart-store';
+import { $cartStore, clearCart, syncWithLocalStorage, readLocalStorage, calculateShippingFee, FREE_SHIPPING_THRESHOLD, STANDARD_SHIPPING_FEE, type CartItem } from '../../lib/cart-store';
 import PayPalButton from './PayPalButton';
 
 export const CheckoutPage = () => {
@@ -57,8 +57,10 @@ export const CheckoutPage = () => {
     return sum + activePrice * (Number(item.quantita) || 1);
   }, 0);
 
-  const shippingCost = orderType === 'spedizione' ? 5.90 : 0;
-  const finalTotal = subtotal + shippingCost;
+  const shippingCost = calculateShippingFee(subtotal, orderType);
+  const finalTotal = Number((subtotal + shippingCost).toFixed(2));
+  const missingForFreeShipping = Math.max(0, Number((FREE_SHIPPING_THRESHOLD - subtotal).toFixed(2)));
+  const hasFreeShipping = subtotal >= FREE_SHIPPING_THRESHOLD;
 
   // 1. Invio e salvataggio transazionale dell'ordine tramite Cloudflare D1
   const handleConfirmOrder = async () => {
@@ -189,7 +191,11 @@ export const CheckoutPage = () => {
                 }`}
               >
                 📦 Spedizione a Casa
-                <span className="block text-xs font-normal text-neutral-500 mt-1">Spedizione (+ € 5.90)</span>
+                <span className="block text-xs font-normal text-neutral-500 mt-1">
+                  {hasFreeShipping 
+                    ? '🎉 Spedizione Gratuita (0,00 €)' 
+                    : `Costo Spedizione (+ € ${STANDARD_SHIPPING_FEE.toFixed(2)})`}
+                </span>
               </button>
             </div>
           </div>
@@ -388,6 +394,8 @@ export const CheckoutPage = () => {
                 </div>
                 <PayPalButton
                   amount={finalTotal}
+                  subtotal={subtotal}
+                  shippingCost={shippingCost}
                   carrello={items.map((item: CartItem) => {
                     const unitPrice = Number(
                       item.prezzo_scontato && item.prezzo_scontato > 0
@@ -475,18 +483,29 @@ export const CheckoutPage = () => {
             </div>
           )}
 
-          <div className="border-t pt-3 space-y-1.5 text-xs">
+          <div className="border-t pt-3 space-y-2 text-xs">
             <div className="flex justify-between text-neutral-600">
               <span>Subtotale articoli</span>
               <span className="font-bold text-neutral-900">€ {subtotal.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-neutral-600">
-              <span>Consegna</span>
+            <div className="flex justify-between text-neutral-600 items-center">
+              <span>Spedizione</span>
               <span className="font-bold text-neutral-900">
-                {orderType === 'ritiro' ? 'Gratuita' : `€ ${shippingCost.toFixed(2)}`}
+                {orderType === 'ritiro' ? (
+                  <span className="text-emerald-700 font-extrabold">Gratuita (Ritiro in Negozio)</span>
+                ) : shippingCost === 0 ? (
+                  <span className="text-emerald-700 font-extrabold">Gratis (Ordini ≥ 50€)</span>
+                ) : (
+                  <span>€ {shippingCost.toFixed(2)}</span>
+                )}
               </span>
             </div>
-            <div className="flex justify-between text-sm font-black text-neutral-900 border-t pt-2 mt-2">
+            {orderType === 'spedizione' && shippingCost > 0 && (
+              <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-[11px] leading-relaxed">
+                🚚 Ti mancano solo <strong>€ {missingForFreeShipping.toFixed(2)}</strong> di articoli per ottenere la <strong>Spedizione Gratuita</strong>!
+              </div>
+            )}
+            <div className="flex justify-between text-sm font-black text-neutral-900 border-t pt-2 mt-1">
               <span>Totale Ordine</span>
               <span className="text-teal-600 text-lg">€ {finalTotal.toFixed(2)}</span>
             </div>

@@ -150,20 +150,39 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const cliente_nome = (payload.cliente_nome || '').trim();
     const cliente_email = payload.cliente_email ? String(payload.cliente_email).trim() : null;
     const cliente_telefono = (payload.cliente_telefono || '').trim();
-    const tipo_ordine = payload.tipo_ordine || 'ritiro';
+    const tipo_ordine = String(payload.tipo_ordine || 'ritiro').trim().toLowerCase() === 'spedizione' ? 'spedizione' : 'ritiro';
     const stato = payload.stato || 'in_sospeso';
     const data_ritiro_prevista = payload.data_ritiro_prevista || null;
     const fascia_ritiro = payload.fascia_ritiro || null;
     const indirizzo_spedizione = payload.indirizzo_spedizione || null;
     const citta_spedizione = payload.citta_spedizione || null;
     const cap_spedizione = payload.cap_spedizione || null;
-    const costo_spedizione = Number(payload.costo_spedizione) || 0;
-    const totale_articoli = Number(payload.totale_articoli) || 0;
-    const totale_ordine = Number(payload.totale_ordine) || (totale_articoli + costo_spedizione);
-    const note_cliente = payload.note_cliente || null;
-    const pagamento_id_paypal = payload.pagamento_id_paypal || null;
 
     const items: any[] = Array.isArray(payload.articoli) ? payload.articoli : [];
+
+    // Calcolo affidabile del subtotale articoli
+    let calcolatoArticoli = 0;
+    if (items.length > 0) {
+      calcolatoArticoli = items.reduce((acc, item) => {
+        const up = Number(item.prezzo_unitario ?? item.prezzo_al_momento ?? item.prezzo ?? 0);
+        const q = Math.max(1, parseInt(item.quantita, 10) || 1);
+        return acc + (up * q);
+      }, 0);
+    }
+    const totale_articoli = calcolatoArticoli > 0 
+      ? Number(calcolatoArticoli.toFixed(2)) 
+      : Number(Number(payload.totale_articoli || 0).toFixed(2));
+
+    // Regole spese di spedizione:
+    // - Ritiro in Negozio: sempre 0,00 €
+    // - Spedizione a Domicilio: subtotale < 50.00 € => 6,50 €, subtotale >= 50.00 € => 0,00 €
+    const costo_spedizione = tipo_ordine === 'ritiro'
+      ? 0.0
+      : (totale_articoli >= 50.0 ? 0.0 : 6.50);
+
+    const totale_ordine = Number((totale_articoli + costo_spedizione).toFixed(2));
+    const note_cliente = payload.note_cliente || null;
+    const pagamento_id_paypal = payload.pagamento_id_paypal || null;
 
     // Prepara il batch di dichiarazioni SQL per l'esecuzione transazionale atomica
     const batchStatements: any[] = [];

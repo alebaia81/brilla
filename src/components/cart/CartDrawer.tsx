@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 import { useStore } from '@nanostores/react';
-import { X, ShoppingBag, ArrowRight } from 'lucide-react';
-import { $cart, $isCartOpen, closeCart, $totalQuantity } from '../../lib/cart-store';
+import { X, ShoppingBag, ArrowRight, Truck } from 'lucide-react';
+import { $cart, $isCartOpen, closeCart, $totalQuantity, $totalPrice, FREE_SHIPPING_THRESHOLD } from '../../lib/cart-store';
+import { formatPrice } from '../../lib/format';
 import CartItem from './CartItem';
 import CartSummary from './CartSummary';
 
@@ -9,6 +10,11 @@ export default function CartDrawer() {
   const cart = useStore($cart);
   const isOpen = useStore($isCartOpen);
   const totalQuantity = useStore($totalQuantity);
+  const totalPrice = useStore($totalPrice);
+
+  const missingForFreeShipping = Math.max(0, Number((FREE_SHIPPING_THRESHOLD - totalPrice).toFixed(2)));
+  const progressPercent = Math.min(100, Math.round((totalPrice / FREE_SHIPPING_THRESHOLD) * 100));
+  const hasFreeShipping = totalPrice >= FREE_SHIPPING_THRESHOLD;
 
   const closeButtonRef = React.useRef<HTMLButtonElement>(null);
 
@@ -71,6 +77,34 @@ export default function CartDrawer() {
               <X className="w-5 h-5" aria-hidden="true" />
             </button>
           </div>
+
+          {/* Barra Informativa Spedizione Gratuita */}
+          {cart.length > 0 && (
+            <div className="px-6 py-3 bg-amber-500/10 border-b border-brand-dark/10">
+              <div className="flex items-center justify-between text-xs mb-1.5">
+                {hasFreeShipping ? (
+                  <span className="font-bold text-emerald-800 flex items-center gap-1.5">
+                    <span aria-hidden="true">🎉</span>
+                    <span>Hai sbloccato la <strong>Spedizione Gratuita!</strong></span>
+                  </span>
+                ) : (
+                  <span className="font-medium text-brand-dark/85 flex items-center gap-1.5">
+                    <Truck className="w-3.5 h-3.5 text-brand-amber shrink-0" aria-hidden="true" />
+                    <span>Ti mancano solo <strong>{formatPrice(missingForFreeShipping)}</strong> per la spedizione gratuita!</span>
+                  </span>
+                )}
+                <span className="text-[10px] font-extrabold text-brand-dark/60">{progressPercent}%</span>
+              </div>
+              <div className="w-full h-2 bg-neutral-200 rounded-full overflow-hidden">
+                <div
+                  className={`h-full transition-all duration-500 rounded-full ${
+                    hasFreeShipping ? 'bg-emerald-600' : 'bg-brand-amber'
+                  }`}
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+            </div>
+          )}
 
           {/* Body */}
           <div className="flex-1 overflow-y-auto px-6 py-4">

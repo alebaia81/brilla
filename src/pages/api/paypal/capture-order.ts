@@ -113,7 +113,9 @@ export const POST: APIRoute = async ({ request, locals }) => {
         'Non specificato'
       ).trim();
 
-      const tipoOrdine = String(cliente.tipo_ordine || cliente.tipo || 'ritiro').trim().toLowerCase() === 'spedizione'
+      const tipoOrdine = String(
+        cliente.tipo_ordine || cliente.tipo || body.tipo_ordine || 'ritiro'
+      ).trim().toLowerCase() === 'spedizione'
         ? 'spedizione'
         : 'ritiro';
 
@@ -122,14 +124,41 @@ export const POST: APIRoute = async ({ request, locals }) => {
       const indirizzoSpedizione = tipoOrdine === 'spedizione' ? (cliente.indirizzo || null) : null;
       const cittaSpedizione = tipoOrdine === 'spedizione' ? (cliente.citta || null) : null;
       const capSpedizione = tipoOrdine === 'spedizione' ? (cliente.cap || null) : null;
-      const costoSpedizione = tipoOrdine === 'spedizione' ? 5.90 : 0.0;
 
-      const capturedAmount = 
+      // Calcolo subtotale articoli reale dal carrello
+      let calculatedSubtotal = 0;
+      if (carrello && Array.isArray(carrello) && carrello.length > 0) {
+        calculatedSubtotal = carrello.reduce((acc: number, item: any) => {
+          const p = Number(item.prezzo_unitario ?? item.prezzo ?? item.price ?? 0);
+          const q = Math.max(1, parseInt(item.quantita || item.quantity || 1, 10));
+          return acc + (p * q);
+        }, 0);
+      } else {
+        calculatedSubtotal = Number(body.subtotale ?? 0);
+      }
+      const subtotaleArticoli = Number(calculatedSubtotal.toFixed(2));
+
+      // Regole spese di spedizione:
+      // - Ritiro in Negozio: sempre 0,00 €
+      // - Spedizione a Domicilio: subtotale < 50.00 € => 6,50 €, subtotale >= 50.00 € => 0,00 €
+      const costoSpedizione = tipoOrdine === 'ritiro' 
+        ? 0.0 
+        : (subtotaleArticoli >= 50.0 ? 0.0 : 6.50);
+
+      const capturedAmount = Number(
         captureData.purchase_units?.[0]?.payments?.captures?.[0]?.amount?.value ||
-        captureData.purchase_units?.[0]?.amount?.value;
+        captureData.purchase_units?.[0]?.amount?.value ||
+        body.totale || body.total || 0
+      );
 
-      const totaleOrdine = Number(body.totale ?? body.total ?? body.amount ?? capturedAmount ?? 0);
-      const totaleArticoli = Math.max(0, Number((totaleOrdine - costoSpedizione).toFixed(2)));
+      const totaleOrdine = subtotaleArticoli > 0 
+        ? Number((subtotaleArticoli + costoSpedizione).toFixed(2))
+        : Number(capturedAmount.toFixed(2));
+
+      const totaleArticoli = subtotaleArticoli > 0 
+        ? subtotaleArticoli 
+        : Math.max(0, Number((totaleOrdine - costoSpedizione).toFixed(2)));
+
       const statoOrdine = 'pagato';
       const creatoIl = new Date().toISOString();
       const noteCliente = tipoOrdine === 'spedizione'

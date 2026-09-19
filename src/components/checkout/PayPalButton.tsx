@@ -10,6 +10,8 @@ import { AlertCircle, CheckCircle2, Info, Loader2, RefreshCw, X } from 'lucide-r
 
 export interface PayPalButtonProps {
   amount: number;
+  subtotal?: number;
+  shippingCost?: number;
   carrello?: any[];
   cliente?: {
     nome?: string;
@@ -35,6 +37,8 @@ export interface PayPalButtonProps {
  */
 function PayPalButtonsInner({
   amount,
+  subtotal,
+  shippingCost,
   carrello,
   cliente,
   disabled,
@@ -44,6 +48,8 @@ function PayPalButtonsInner({
   setFeedback,
 }: {
   amount: string;
+  subtotal?: number;
+  shippingCost?: number;
   carrello: any[];
   cliente: Record<string, any>;
   disabled: boolean;
@@ -125,6 +131,10 @@ function PayPalButtonsInner({
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               totale: Number(amount),
+              subtotale: subtotal != null ? Number(subtotal) : Number(amount),
+              costo_spedizione: shippingCost != null ? Number(shippingCost) : 0,
+              tipo_ordine: cliente?.tipo_ordine || 'ritiro',
+              carrello: carrello,
               descrizione: 'Ordine online Brilla Cafe',
             }),
           });
@@ -157,6 +167,8 @@ function PayPalButtonsInner({
               carrello: carrello,
               cliente: cliente,
               totale: Number(amount),
+              subtotale: subtotal != null ? Number(subtotal) : Number(amount),
+              costo_spedizione: shippingCost != null ? Number(shippingCost) : 0,
             }),
           });
 
@@ -210,6 +222,8 @@ function PayPalButtonsInner({
 
 export default function PayPalButton({
   amount,
+  subtotal,
+  shippingCost,
   carrello = [],
   cliente = {},
   disabled = false,
@@ -306,6 +320,8 @@ export default function PayPalButton({
       <PayPalScriptProvider options={initialOptions}>
         <PayPalButtonsInner
           amount={safeAmount}
+          subtotal={subtotal}
+          shippingCost={shippingCost}
           carrello={carrello}
           cliente={cliente}
           disabled={disabled}

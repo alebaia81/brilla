@@ -21,10 +21,37 @@ export const POST: APIRoute = async ({ request, locals }) => {
       );
     }
 
-    // 2. Lettura e validazione dell'importo dal body JSON
+    // 2. Lettura e validazione dei dati dell'ordine
     const body: any = await request.json().catch(() => ({}));
-    const rawTotal = body.totale ?? body.total ?? body.amount ?? body.importo;
-    const total = Number(rawTotal);
+    const carrello = Array.isArray(body.carrello) 
+      ? body.carrello 
+      : (Array.isArray(body.cart) ? body.cart : (Array.isArray(body.articoli) ? body.articoli : []));
+    
+    const tipoOrdine = String(
+      body.tipo_ordine || body.tipo || body.cliente?.tipo_ordine || 'ritiro'
+    ).trim().toLowerCase() === 'spedizione' ? 'spedizione' : 'ritiro';
+
+    // Ricalcolo del subtotale articoli dal carrello se fornito
+    let calculatedSubtotal = 0;
+    if (carrello.length > 0) {
+      calculatedSubtotal = carrello.reduce((acc: number, item: any) => {
+        const price = Number(item.prezzo_unitario ?? item.prezzo ?? item.price ?? 0);
+        const qty = Math.max(1, parseInt(item.quantita || item.quantity || 1, 10));
+        return acc + (price * qty);
+      }, 0);
+    } else {
+      calculatedSubtotal = Number(body.subtotale ?? body.totale ?? body.total ?? body.amount ?? 0);
+    }
+    const subtotal = Number(calculatedSubtotal.toFixed(2));
+
+    // Regola spese di spedizione:
+    // - Ritiro in Negozio: sempre 0,00 €
+    // - Spedizione a Domicilio: subtotale < 50.00 € => 6,50 €, subtotale >= 50.00 € => 0,00 €
+    const shipping = tipoOrdine === 'ritiro' 
+      ? 0.0 
+      : (subtotal >= 50.0 ? 0.0 : 6.50);
+
+    const total = Number((subtotal + shipping).toFixed(2));
 
     if (isNaN(total) || total <= 0) {
       return new Response(
@@ -42,7 +69,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const baseUrl = getPayPalBaseUrl(paypalEnv);
     const accessToken = await getPayPalAccessToken(clientId, clientSecret, baseUrl);
 
-    // 4. Chiamata alle API PayPal per creazione ordine
+    // 4. Chiamata alle API PayPal per creazione ordine con breakdown esatto
     const paypalResponse = await fetch(`${baseUrl}/v2/checkout/orders`, {
       method: 'POST',
       headers: {
@@ -56,6 +83,16 @@ export const POST: APIRoute = async ({ request, locals }) => {
             amount: {
               currency_code: 'EUR',
               value: total.toFixed(2),
+              breakdown: {
+                item_total: {
+                  currency_code: 'EUR',
+                  value: subtotal.toFixed(2),
+                },
+                shipping: {
+                  currency_code: 'EUR',
+                  value: shipping.toFixed(2),
+                },
+              },
             },
             description: body.descrizione || 'Ordine Brilla Cafe',
           },
