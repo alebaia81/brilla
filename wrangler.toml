@@ -1,0 +1,14 @@
+name = "brilla"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+# Cloudflare D1 Database Binding
+[[d1_databases]]
+binding = "DB"
+database_name = "brilla-cafe-db"
+database_id = "brilla-cafe-db"
+
+# Cloudflare R2 Storage Bucket
+[[r2_buckets]]
+binding = "STORAGE"
+bucket_name = "brilla-prodotti"

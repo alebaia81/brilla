@@ -29,6 +29,33 @@ export const GET: APIRoute = async ({ request, locals }) => {
     const url = new URL(request.url);
     const checkLatest = url.searchParams.get('check_latest') === 'true';
     const lastId = url.searchParams.get('last_id');
+    const singleId = url.searchParams.get('id') || url.searchParams.get('orderId') || url.searchParams.get('ordine');
+
+    // Recupero dettagli di un singolo ordine
+    if (singleId) {
+      const order = await db.prepare(
+        'SELECT * FROM ordini WHERE id = ? OR numero_ordine = ? OR pagamento_id_paypal = ?'
+      ).bind(singleId, singleId, singleId).first();
+
+      if (!order) {
+        return new Response(JSON.stringify({ error: 'Ordine non trovato' }), {
+          status: 404,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      const itemsRes = await db.prepare(
+        'SELECT * FROM ordine_articoli WHERE ordine_id = ?'
+      ).bind(order.id).all();
+
+      return new Response(JSON.stringify({
+        ...order,
+        ordine_articoli: itemsRes.results || [],
+      }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
 
     // Endpoint ultraleggero di polling: query veloce senza join pesanti
     if (checkLatest) {

@@ -30,6 +30,14 @@ export function readLocalStorage(): CartItem[] {
   }
 }
 
+// Sincronizza esplicitamente l'atom con il contenuto corrente di localStorage
+export function syncWithLocalStorage(): CartItem[] {
+  if (typeof window === 'undefined') return [];
+  const items = readLocalStorage();
+  $cartStore.set(items);
+  return items;
+}
+
 // Atom principale del carrello
 export const $cartStore = atom<CartItem[]>(readLocalStorage());
 export const $cart = $cartStore;
@@ -59,7 +67,31 @@ if (typeof window !== 'undefined') {
     }
   });
 
-  // Log di debug come richiesto
+  // Ascolto eventi di sincronizzazione storage tra schede o navigazioni
+  window.addEventListener('storage', (e) => {
+    if (e.key === CART_STORAGE_KEY || e.key === 'brilla_cart_v1' || !e.key) {
+      const updated = readLocalStorage();
+      $cartStore.set(updated);
+    }
+  });
+
+  // Re-idratazione alla navigazione o ripristino bfcache (pageshow)
+  window.addEventListener('pageshow', () => {
+    const updated = readLocalStorage();
+    if (updated.length > 0 && $cartStore.get().length === 0) {
+      $cartStore.set(updated);
+    }
+  });
+
+  // Supporto per navigazioni interne Astro
+  document.addEventListener('astro:page-load', () => {
+    const updated = readLocalStorage();
+    if (updated.length > 0 && $cartStore.get().length === 0) {
+      $cartStore.set(updated);
+    }
+  });
+
+  // Log di debug per verifica immediata
   console.log('[DEBUG CART]', {
     store: $cartStore.get(),
     local: localStorage.getItem(CART_STORAGE_KEY) || localStorage.getItem('brilla_cart_v1'),

@@ -1,10 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
-import { $cartStore, clearCart, type CartItem } from '../../lib/cart-store';
+import { $cartStore, clearCart, syncWithLocalStorage, readLocalStorage, type CartItem } from '../../lib/cart-store';
+import PayPalButton from './PayPalButton';
 
 export const CheckoutPage = () => {
   const cart = useStore($cartStore);
+  const [mounted, setMounted] = useState(false);
+
+  // Sincronizzazione immediata al mount nel browser
+  useEffect(() => {
+    setMounted(true);
+    syncWithLocalStorage();
+  }, []);
+
   const [orderType, setOrderType] = useState<'ritiro' | 'spedizione'>('ritiro');
+  const [paymentMethod, setPaymentMethod] = useState<'contanti' | 'paypal'>('contanti');
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [telefono, setTelefono] = useState('');
@@ -33,8 +43,11 @@ export const CheckoutPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Risolve gli articoli dello store in modo sicuro
-  const items: CartItem[] = Array.isArray(cart) ? cart : ((cart as any)?.items || []);
+  // Risolve gli articoli dello store in modo sicuro (con fallback diretto a localStorage per sincronizzazione istantanea)
+  const storeItems: CartItem[] = Array.isArray(cart) ? cart : ((cart as any)?.items || []);
+  const items: CartItem[] = storeItems.length > 0 
+    ? storeItems 
+    : (typeof window !== 'undefined' ? readLocalStorage() : []);
 
   const totalQty = items.reduce((sum, item) => sum + (Number(item.quantita) || 1), 0);
   const subtotal = items.reduce((sum, item) => {
@@ -322,19 +335,107 @@ export const CheckoutPage = () => {
                 </div>
               </div>
             )}
+          </div>
 
-            <button 
-              type="button" 
-              disabled={isSubmitting}
-              onClick={handleConfirmOrder}
-              className="w-full py-4 bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white font-bold rounded-xl shadow-md transition cursor-pointer text-sm"
-            >
-              {isSubmitting 
-                ? 'Salvataggio ordine in corso...' 
-                : (orderType === 'ritiro' 
-                    ? `Conferma Ordine con Ritiro (€ ${finalTotal.toFixed(2)})` 
-                    : `Conferma Spedizione (€ ${finalTotal.toFixed(2)})`)}
-            </button>
+          {/* 3. Metodo di Pagamento */}
+          <div className="bg-white p-6 rounded-2xl border border-neutral-200 shadow-sm space-y-4">
+            <h2 className="text-base font-bold text-neutral-900">3. Metodo di Pagamento</h2>
+
+            {orderType === 'ritiro' && (
+              <div className="grid grid-cols-2 gap-3 mb-2">
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('contanti')}
+                  className={`p-3.5 rounded-xl border-2 font-bold text-left text-xs transition cursor-pointer ${
+                    paymentMethod === 'contanti'
+                      ? 'border-teal-600 bg-teal-50/60 text-teal-950 shadow-sm'
+                      : 'border-neutral-200 hover:border-neutral-300 text-neutral-700'
+                  }`}
+                >
+                  💵 Paga al Ritiro
+                  <span className="block text-[11px] font-normal text-neutral-500 mt-0.5">
+                    Contanti o POS in negozio
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('paypal')}
+                  className={`p-3.5 rounded-xl border-2 font-bold text-left text-xs transition cursor-pointer ${
+                    paymentMethod === 'paypal'
+                      ? 'border-amber-500 bg-amber-50/60 text-amber-950 shadow-sm'
+                      : 'border-neutral-200 hover:border-neutral-300 text-neutral-700'
+                  }`}
+                >
+                  💳 PayPal / Carta
+                  <span className="block text-[11px] font-normal text-neutral-500 mt-0.5">
+                    Paga subito online
+                  </span>
+                </button>
+              </div>
+            )}
+
+            {orderType === 'spedizione' || paymentMethod === 'paypal' ? (
+              <div className="space-y-3 pt-1">
+                {orderType === 'spedizione' && (
+                  <p className="text-xs text-neutral-500">
+                    Per gli ordini con spedizione a domicilio, il pagamento viene elaborato in sicurezza con PayPal o carta di credito/debito.
+                  </p>
+                )}
+                <div className="flex items-center justify-between text-xs text-neutral-600 pb-1">
+                  <span>Totale da autorizzare:</span>
+                  <span className="font-extrabold text-neutral-900 text-sm">€ {finalTotal.toFixed(2)}</span>
+                </div>
+                <PayPalButton
+                  amount={finalTotal}
+                  carrello={items.map((item: CartItem) => {
+                    const unitPrice = Number(
+                      item.prezzo_scontato && item.prezzo_scontato > 0
+                        ? item.prezzo_scontato
+                        : (item.prezzo || 0)
+                    );
+                    const itemQty = Number(item.quantita || 1);
+                    return {
+                      id: item.id ? String(item.id) : null,
+                      prodotto_id: item.id ? String(item.id) : null,
+                      nome_prodotto: item.nome || 'Articolo',
+                      quantita: itemQty,
+                      prezzo_unitario: unitPrice,
+                      subtotale: Number((unitPrice * itemQty).toFixed(2)),
+                    };
+                  })}
+                  cliente={{
+                    nome: nome.trim(),
+                    email: (email && email.trim()) ? email.trim() : `${telefono.replace(/\s+/g, '')}@cliente.brillacafe.it`,
+                    telefono: telefono.trim(),
+                    tipo_ordine: orderType,
+                    indirizzo: indirizzo.trim(),
+                    citta: citta.trim(),
+                    cap: cap.trim(),
+                    data_ritiro: dataRitiro,
+                    fascia: fascia,
+                  }}
+                  disabled={
+                    !nome.trim() ||
+                    !telefono.trim() ||
+                    (orderType === 'spedizione' && !indirizzo.trim()) ||
+                    items.length === 0
+                  }
+                  onError={(err) => setErrorMsg(err?.message || 'Errore durante la transazione PayPal')}
+                />
+              </div>
+            ) : (
+              <button 
+                type="button" 
+                disabled={isSubmitting}
+                onClick={handleConfirmOrder}
+                className="w-full py-4 bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white font-bold rounded-xl shadow-md transition cursor-pointer text-sm"
+              >
+                {isSubmitting 
+                  ? 'Salvataggio ordine in corso...' 
+                  : `Conferma Ordine con Ritiro (€ ${finalTotal.toFixed(2)})`}
+              </button>
+            )}
           </div>
         </div>
 

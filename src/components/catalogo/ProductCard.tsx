@@ -72,11 +72,17 @@ export default function ProductCard({ product }: ProductCardProps) {
   return (
     <div className={`group relative rounded-3xl bg-white border border-brand-dark/10 hover:border-brand-amber/40 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden ${isOutOfStock ? 'opacity-85' : ''}`}>
       
-      {/* Container Immagine con Adattamento Completo & Sfondo Neutro */}
+      {/* Link full-card: rende l'intera card cliccabile (fix mobile tap target) */}
       <a
         href={`/prodotto/${product.slug}`}
-        className="block relative aspect-square bg-stone-100/70 overflow-hidden p-3 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#2C3E50]"
+        className="absolute inset-0 z-10"
         aria-label={`Visualizza scheda di ${product.nome}`}
+        tabIndex={-1}
+      />
+      
+      {/* Container Immagine con Adattamento Completo & Sfondo Neutro */}
+      <div
+        className="block relative aspect-square bg-stone-100/70 overflow-hidden p-3 flex items-center justify-center"
       >
         <img
           key={`${product.id}-${imgSrc}`}
@@ -113,7 +119,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             <Eye className="w-5 h-5" aria-hidden="true" />
           </span>
         </div>
-      </a>
+      </div>
 
       {/* Dettagli Prodotto */}
       <div className="p-5 flex-1 flex flex-col justify-between">
@@ -124,14 +130,13 @@ export default function ProductCard({ product }: ProductCardProps) {
             </span>
           )}
 
-          <a
-            href={`/prodotto/${product.slug}`}
-            className="block group-hover:text-brand-amber transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2C3E50] rounded-sm"
+          <span
+            className="block group-hover:text-brand-amber transition-colors"
           >
             <h3 className="text-sm font-bold text-brand-dark line-clamp-2 leading-snug">
               {product.nome}
             </h3>
-          </a>
+          </span>
 
           {product.descrizione && (
             <p className="text-xs text-brand-dark/70 line-clamp-2 mt-1.5 leading-relaxed">
@@ -174,7 +179,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             disabled={isOutOfStock}
             aria-label={isOutOfStock ? `${product.nome} è attualmente esaurito` : `Aggiungi ${product.nome} al carrello`}
             title={isOutOfStock ? 'Prodotto esaurito' : 'Aggiungi al carrello'}
-            className={`p-3 rounded-2xl font-semibold transition-all duration-200 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#2C3E50] ${
+            className={`relative z-20 p-3 rounded-2xl font-semibold transition-all duration-200 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#2C3E50] ${
               isOutOfStock
                 ? 'bg-neutral-100 text-neutral-400 border border-neutral-200 cursor-not-allowed'
                 : added
