@@ -9,6 +9,12 @@ export const prerender = false;
  */
 function getDb(locals: any): any {
   try {
+    const pEnv = (locals as any)?.platform?.env;
+    if (pEnv?.DB || pEnv?.['brilla-cafe-db']) {
+      return pEnv.DB || pEnv['brilla-cafe-db'];
+    }
+  } catch {}
+  try {
     const rEnv = (locals as any)?.runtime?.env;
     if (rEnv?.DB || rEnv?.['brilla-cafe-db']) {
       return rEnv.DB || rEnv['brilla-cafe-db'];
@@ -27,7 +33,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     // 1. Connessione al database D1
     const db = getDb(locals);
 
-    // 2. Recupero configurazione PayPal
+    // 2. Recupero configurazione PayPal (supporta sia live che sandbox, e variabili PUBLIC_*)
     const { clientId, clientSecret, paypalEnv } = getPayPalConfig(locals, env);
 
     if (!clientId || !clientSecret) {
@@ -58,10 +64,43 @@ export const POST: APIRoute = async ({ request, locals }) => {
       );
     }
 
-    // 4. Cattura dell'ordine tramite PayPal API
+    // 4. Controllo preliminare di idempotenza su D1: se l'ordine è già stato salvato, restituiscilo immediatamente
+    if (db) {
+      try {
+        const existingOrder = await db.prepare(
+          'SELECT id, numero_ordine FROM ordini WHERE pagamento_id_paypal = ?'
+        ).bind(orderID).first();
+
+        if (existingOrder) {
+          console.log(`[D1 IDEMPOTENZA]: Ordine già presente per PayPal ID ${orderID}: ${existingOrder.numero_ordine}`);
+          return new Response(
+            JSON.stringify({
+              success: true,
+              ordineId: existingOrder.id,
+              codiceOrdine: existingOrder.numero_ordine,
+              codice_ordine: existingOrder.numero_ordine,
+              orderId: existingOrder.id,
+              numeroOrdine: existingOrder.numero_ordine,
+              id: existingOrder.id,
+              paypalOrderId: orderID,
+              status: 'COMPLETED',
+            }),
+            {
+              status: 200,
+              headers: { 'Content-Type': 'application/json' },
+            }
+          );
+        }
+      } catch (checkErr) {
+        console.warn('[D1 CHECK PRELIMINARE WARN]:', checkErr);
+      }
+    }
+
+    // 5. Cattura dell'ordine tramite PayPal API
     const baseUrl = getPayPalBaseUrl(paypalEnv);
     const accessToken = await getPayPalAccessToken(clientId, clientSecret, baseUrl);
 
+    console.log(`[PAYPAL CAPTURE START]: Invocazione capture per orderID: ${orderID} su ${baseUrl}`);
     const captureResponse = await fetch(`${baseUrl}/v2/checkout/orders/${orderID}/capture`, {
       method: 'POST',
       headers: {
@@ -70,196 +109,237 @@ export const POST: APIRoute = async ({ request, locals }) => {
       },
     });
 
-    const captureData: any = await captureResponse.json();
+    let captureData: any = await captureResponse.json().catch(() => ({}));
+    let status = captureData?.status;
 
+    // Gestione risposte non-200 (es. se l'ordine è già stato catturato)
     if (!captureResponse.ok) {
+      console.warn('[PAYPAL CAPTURE WARN]:', captureResponse.status, captureData);
+      
+      const isAlreadyCaptured = 
+        captureData?.details?.some((d: any) => d.issue === 'ORDER_ALREADY_CAPTURED') ||
+        captureData?.name === 'UNPROCESSABLE_ENTITY';
+
+      if (isAlreadyCaptured) {
+        console.log(`[PAYPAL] Ordine ${orderID} già catturato, interrogo i dettagli ordine...`);
+        const orderGetRes = await fetch(`${baseUrl}/v2/checkout/orders/${orderID}`, {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        if (orderGetRes.ok) {
+          const orderGetData: any = await orderGetRes.json();
+          if (orderGetData.status === 'COMPLETED' || orderGetData.status === 'APPROVED') {
+            status = 'COMPLETED';
+            captureData = orderGetData;
+            console.log(`[PAYPAL] Ordine ${orderID} verificato con successo: status COMPLETED`);
+          }
+        }
+      }
+    }
+
+    if (status !== 'COMPLETED') {
       console.error('[PAYPAL CAPTURE ERROR]:', captureResponse.status, captureData);
       return new Response(
         JSON.stringify({
-          error: 'Errore durante la cattura del pagamento PayPal',
+          success: false,
+          error: captureData?.message || captureData?.details?.[0]?.description || 'Errore durante la cattura del pagamento PayPal',
           details: captureData,
         }),
         {
-          status: captureResponse.status || 500,
+          status: captureResponse.ok ? 400 : (captureResponse.status || 500),
           headers: { 'Content-Type': 'application/json' },
         }
       );
     }
 
-    const status = captureData.status;
+    // 6. Se la cattura ha avuto successo, inserimento nel database D1
+    const orderId = crypto.randomUUID();
+    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const numeroOrdine = `ORD-${dateStr}-${randomSuffix}`;
 
-    // 5. Se la cattura ha avuto successo, inserimento nel database D1
-    if (status === 'COMPLETED') {
-      const orderId = crypto.randomUUID();
-      const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-      const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
-      const numeroOrdine = `ORD-${dateStr}-${randomSuffix}`;
+    // Sanitizzazione parametri cliente e importo
+    const clienteNome = String(
+      cliente.nome || cliente.cliente_nome || 
+      `${captureData.payer?.name?.given_name || ''} ${captureData.payer?.name?.surname || ''}`.trim() || 
+      'Cliente'
+    ).trim();
 
-      // Sanitizzazione parametri cliente e importo
-      const clienteNome = String(
-        cliente.nome || cliente.cliente_nome || 
-        `${captureData.payer?.name?.given_name || ''} ${captureData.payer?.name?.surname || ''}`.trim() || 
-        'Cliente'
-      ).trim();
+    const clienteEmail = String(
+      cliente.email || cliente.cliente_email || 
+      captureData.payer?.email_address || 
+      'cliente@brillacafe.it'
+    ).trim();
 
-      const clienteEmail = String(
-        cliente.email || cliente.cliente_email || 
-        captureData.payer?.email_address || 
-        ''
-      ).trim() || null;
+    const clienteTelefono = String(
+      cliente.telefono || cliente.cliente_telefono || cliente.phone || 
+      'Non specificato'
+    ).trim();
 
-      const clienteTelefono = String(
-        cliente.telefono || cliente.cliente_telefono || cliente.phone || 
-        'Non specificato'
-      ).trim();
+    const tipoOrdine = String(
+      cliente.tipo_ordine || cliente.tipo || body.tipo_ordine || 'ritiro'
+    ).trim().toLowerCase() === 'spedizione'
+      ? 'spedizione'
+      : 'ritiro';
 
-      const tipoOrdine = String(
-        cliente.tipo_ordine || cliente.tipo || body.tipo_ordine || 'ritiro'
-      ).trim().toLowerCase() === 'spedizione'
-        ? 'spedizione'
-        : 'ritiro';
+    const dataRitiro = tipoOrdine === 'ritiro' ? (cliente.data_ritiro || cliente.data || null) : null;
+    const fasciaRitiro = tipoOrdine === 'ritiro' ? (cliente.fascia || null) : null;
+    const indirizzoSpedizione = tipoOrdine === 'spedizione' ? (cliente.indirizzo || null) : null;
+    const cittaSpedizione = tipoOrdine === 'spedizione' ? (cliente.citta || null) : null;
+    const capSpedizione = tipoOrdine === 'spedizione' ? (cliente.cap || null) : null;
 
-      const dataRitiro = tipoOrdine === 'ritiro' ? (cliente.data_ritiro || cliente.data || null) : null;
-      const fasciaRitiro = tipoOrdine === 'ritiro' ? (cliente.fascia || null) : null;
-      const indirizzoSpedizione = tipoOrdine === 'spedizione' ? (cliente.indirizzo || null) : null;
-      const cittaSpedizione = tipoOrdine === 'spedizione' ? (cliente.citta || null) : null;
-      const capSpedizione = tipoOrdine === 'spedizione' ? (cliente.cap || null) : null;
+    // Calcolo subtotale articoli reale dal carrello
+    let calculatedSubtotal = 0;
+    if (carrello && Array.isArray(carrello) && carrello.length > 0) {
+      calculatedSubtotal = carrello.reduce((acc: number, item: any) => {
+        const p = Number(item.prezzo_unitario ?? item.prezzo ?? item.price ?? 0);
+        const q = Math.max(1, parseInt(item.quantita || item.quantity || 1, 10));
+        return acc + (p * q);
+      }, 0);
+    } else {
+      calculatedSubtotal = Number(body.subtotale ?? 0);
+    }
+    const subtotaleArticoli = Number(calculatedSubtotal.toFixed(2));
 
-      // Calcolo subtotale articoli reale dal carrello
-      let calculatedSubtotal = 0;
-      if (carrello && Array.isArray(carrello) && carrello.length > 0) {
-        calculatedSubtotal = carrello.reduce((acc: number, item: any) => {
-          const p = Number(item.prezzo_unitario ?? item.prezzo ?? item.price ?? 0);
-          const q = Math.max(1, parseInt(item.quantita || item.quantity || 1, 10));
-          return acc + (p * q);
-        }, 0);
-      } else {
-        calculatedSubtotal = Number(body.subtotale ?? 0);
+    // Regole spese di spedizione:
+    // - Ritiro in Negozio: sempre 0,00 €
+    // - Spedizione a Domicilio: subtotale < 50.00 € => 6,50 €, subtotale >= 50.00 € => 0,00 €
+    const costoSpedizione = tipoOrdine === 'ritiro' 
+      ? 0.0 
+      : (subtotaleArticoli >= 50.0 ? 0.0 : 6.50);
+
+    const capturedAmount = Number(
+      captureData.purchase_units?.[0]?.payments?.captures?.[0]?.amount?.value ||
+      captureData.purchase_units?.[0]?.amount?.value ||
+      body.totale || body.total || 0
+    );
+
+    const totaleOrdine = subtotaleArticoli > 0 
+      ? Number((subtotaleArticoli + costoSpedizione).toFixed(2))
+      : Number(capturedAmount.toFixed(2));
+
+    const totaleArticoli = subtotaleArticoli > 0 
+      ? subtotaleArticoli 
+      : Math.max(0, Number((totaleOrdine - costoSpedizione).toFixed(2)));
+
+    const statoOrdine = 'pagato';
+    const creatoIl = new Date().toISOString();
+    const noteCliente = tipoOrdine === 'spedizione'
+      ? `Spedizione: ${indirizzoSpedizione || ''}, ${cittaSpedizione || ''} ${capSpedizione || ''}`
+      : `Ritiro: ${dataRitiro || ''} - Fascia: ${fasciaRitiro || ''}`;
+
+    if (!db) {
+      console.error('[D1 INSERT ERROR]: Database D1 non disponibile (binding DB mancante in runtime).');
+      throw new Error('Database D1 non disponibile nel runtime.');
+    }
+
+    try {
+      // Secondo controllo rapido se l'ordine è stato registrato in contemporanea
+      const checkExisting = await db.prepare(
+        'SELECT id, numero_ordine FROM ordini WHERE pagamento_id_paypal = ?'
+      ).bind(orderID).first();
+
+      if (checkExisting) {
+        return new Response(
+          JSON.stringify({
+            success: true,
+            ordineId: checkExisting.id,
+            codiceOrdine: checkExisting.numero_ordine,
+            codice_ordine: checkExisting.numero_ordine,
+            orderId: checkExisting.id,
+            numeroOrdine: checkExisting.numero_ordine,
+            id: checkExisting.id,
+            paypalOrderId: orderID,
+            status: 'COMPLETED',
+          }),
+          {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
       }
-      const subtotaleArticoli = Number(calculatedSubtotal.toFixed(2));
 
-      // Regole spese di spedizione:
-      // - Ritiro in Negozio: sempre 0,00 €
-      // - Spedizione a Domicilio: subtotale < 50.00 € => 6,50 €, subtotale >= 50.00 € => 0,00 €
-      const costoSpedizione = tipoOrdine === 'ritiro' 
-        ? 0.0 
-        : (subtotaleArticoli >= 50.0 ? 0.0 : 6.50);
+      const batchStatements: any[] = [];
 
-      const capturedAmount = Number(
-        captureData.purchase_units?.[0]?.payments?.captures?.[0]?.amount?.value ||
-        captureData.purchase_units?.[0]?.amount?.value ||
-        body.totale || body.total || 0
+      // 1. Inserimento testata ordine nella tabella ordini
+      batchStatements.push(
+        db.prepare(`
+          INSERT INTO ordini (
+            id, numero_ordine, cliente_nome, cliente_email, cliente_telefono,
+            tipo_ordine, stato, data_ritiro_prevista, fascia_ritiro,
+            indirizzo_spedizione, citta_spedizione, cap_spedizione,
+            costo_spedizione, totale_articoli, totale_ordine, note_cliente,
+            pagamento_id_paypal, data_pagamento, creato_il, aggiornato_il
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+        `).bind(
+          orderId, numeroOrdine, clienteNome, clienteEmail, clienteTelefono,
+          tipoOrdine, statoOrdine, dataRitiro, fasciaRitiro,
+          indirizzoSpedizione, cittaSpedizione, capSpedizione,
+          costoSpedizione, totaleArticoli, totaleOrdine, noteCliente,
+          orderID, creatoIl
+        )
       );
 
-      const totaleOrdine = subtotaleArticoli > 0 
-        ? Number((subtotaleArticoli + costoSpedizione).toFixed(2))
-        : Number(capturedAmount.toFixed(2));
+      // 2. Inserimento articoli ordine nel carrello
+      if (carrello && Array.isArray(carrello) && carrello.length > 0) {
+        for (const item of carrello) {
+          const itemId = crypto.randomUUID();
+          const prodId = item.prodotto_id || item.id ? String(item.prodotto_id || item.id) : null;
+          const nomeProd = String(item.nome_prodotto || item.nome || item.title || 'Prodotto').trim();
+          const quantita = Math.max(1, parseInt(item.quantita || item.quantity || 1, 10));
+          const prezzoUnitario = Number(item.prezzo_unitario ?? item.prezzo ?? item.price ?? 0);
+          const subtotale = Number((prezzoUnitario * quantita).toFixed(2));
 
-      const totaleArticoli = subtotaleArticoli > 0 
-        ? subtotaleArticoli 
-        : Math.max(0, Number((totaleOrdine - costoSpedizione).toFixed(2)));
+          batchStatements.push(
+            db.prepare(`
+              INSERT INTO ordine_articoli (
+                id, ordine_id, prodotto_id, nome_prodotto, quantita, prezzo_unitario, subtotale, creato_il
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
+            `).bind(itemId, orderId, prodId, nomeProd, quantita, prezzoUnitario, subtotale)
+          );
 
-      const statoOrdine = 'pagato';
-      const creatoIl = new Date().toISOString();
-      const noteCliente = tipoOrdine === 'spedizione'
-        ? `Spedizione: ${indirizzoSpedizione || ''}, ${cittaSpedizione || ''} ${capSpedizione || ''}`
-        : `Ritiro: ${dataRitiro || ''} - Fascia: ${fasciaRitiro || ''}`;
-
-      if (!db) {
-        console.error('[D1 INSERT ERROR]: Database D1 non disponibile (binding DB mancante in runtime).');
-        throw new Error('Database D1 non disponibile nel runtime.');
-      }
-
-      try {
-        const batchStatements: any[] = [];
-
-        // 1. Inserimento testata ordine nella tabella ordini
-        batchStatements.push(
-          db.prepare(`
-            INSERT INTO ordini (
-              id, numero_ordine, cliente_nome, cliente_email, cliente_telefono,
-              tipo_ordine, stato, data_ritiro_prevista, fascia_ritiro,
-              indirizzo_spedizione, citta_spedizione, cap_spedizione,
-              costo_spedizione, totale_articoli, totale_ordine, note_cliente,
-              pagamento_id_paypal, data_pagamento, creato_il, aggiornato_il
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
-          `).bind(
-            orderId, numeroOrdine, clienteNome, clienteEmail, clienteTelefono,
-            tipoOrdine, statoOrdine, dataRitiro, fasciaRitiro,
-            indirizzoSpedizione, cittaSpedizione, capSpedizione,
-            costoSpedizione, totaleArticoli, totaleOrdine, noteCliente,
-            orderID, creatoIl
-          )
-        );
-
-        // 2. Inserimento articoli ordine nel carrello
-        if (carrello && Array.isArray(carrello) && carrello.length > 0) {
-          for (const item of carrello) {
-            const itemId = crypto.randomUUID();
-            const prodId = item.prodotto_id || item.id ? String(item.prodotto_id || item.id) : null;
-            const nomeProd = String(item.nome_prodotto || item.nome || item.title || 'Prodotto').trim();
-            const quantita = Math.max(1, parseInt(item.quantita || item.quantity || 1, 10));
-            const prezzoUnitario = Number(item.prezzo_unitario ?? item.prezzo ?? item.price ?? 0);
-            const subtotale = Number((prezzoUnitario * quantita).toFixed(2));
-
+          // Aggiorna giacenza se presente il prodotto (con COALESCE per evitare null)
+          if (prodId) {
             batchStatements.push(
               db.prepare(`
-                INSERT INTO ordine_articoli (
-                  id, ordine_id, prodotto_id, nome_prodotto, quantita, prezzo_unitario, subtotale, creato_il
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
-              `).bind(itemId, orderId, prodId, nomeProd, quantita, prezzoUnitario, subtotale)
+                UPDATE prodotti 
+                SET 
+                  quantita_disponibile = MAX(0, COALESCE(quantita_disponibile, 10) - ?),
+                  disponibile = CASE WHEN (COALESCE(quantita_disponibile, 10) - ?) <= 0 THEN 0 ELSE disponibile END,
+                  aggiornato_il = datetime('now')
+                WHERE id = ?
+              `).bind(quantita, quantita, prodId)
             );
-
-            // Aggiorna giacenza se presente il prodotto
-            if (prodId) {
-              batchStatements.push(
-                db.prepare(`
-                  UPDATE prodotti 
-                  SET 
-                    quantita_disponibile = MAX(0, quantita_disponibile - ?),
-                    disponibile = CASE WHEN (quantita_disponibile - ?) <= 0 THEN 0 ELSE disponibile END,
-                    aggiornato_il = datetime('now')
-                  WHERE id = ?
-                `).bind(quantita, quantita, prodId)
-              );
-            }
           }
         }
-
-        // Esecuzione atomica del batch su D1
-        console.log(`[D1 BATCH EXECUTE]: Esecuzione di ${batchStatements.length} statement SQL per ordine ${numeroOrdine}...`);
-        await db.batch(batchStatements);
-        console.log(`[D1 INSERT SUCCESS]: Ordine #${numeroOrdine} (ID: ${orderId}) registrato con successo in D1.`);
-      } catch (sqlErr: any) {
-        console.error('[D1 INSERT ERROR]:', sqlErr);
-        throw new Error(`Errore durante il salvataggio su D1: ${sqlErr?.message || sqlErr}`);
       }
 
-      // 6. Restituzione risposta di successo
-      return new Response(
-        JSON.stringify({
-          success: true,
-          orderId,
-          numeroOrdine,
-          paypalOrderId: orderID,
-          status,
-        }),
-        {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        }
-      );
+      // Esecuzione atomica del batch su D1
+      console.log(`[D1 BATCH EXECUTE]: Esecuzione di ${batchStatements.length} statement SQL per ordine ${numeroOrdine}...`);
+      await db.batch(batchStatements);
+      console.log(`[D1 INSERT SUCCESS]: Ordine #${numeroOrdine} (ID: ${orderId}) registrato con successo in D1.`);
+    } catch (sqlErr: any) {
+      console.error('[D1 INSERT ERROR]:', sqlErr);
+      throw new Error(`Errore durante il salvataggio su D1: ${sqlErr?.message || sqlErr}`);
     }
 
-    // Se lo stato di cattura non è COMPLETED
+    // 7. Restituzione risposta di successo chiara con tutti i formati attesi
     return new Response(
       JSON.stringify({
-        success: false,
-        status,
+        success: true,
+        ordineId: orderId,
+        codiceOrdine: numeroOrdine,
+        codice_ordine: numeroOrdine,
+        orderId,
+        numeroOrdine,
+        id: orderId,
         paypalOrderId: orderID,
+        status: 'COMPLETED',
       }),
       {
-        status: 400,
+        status: 200,
         headers: { 'Content-Type': 'application/json' },
       }
     );

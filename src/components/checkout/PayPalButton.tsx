@@ -159,6 +159,8 @@ function PayPalButtonsInner({
         });
 
         try {
+          console.log('[PAYPAL onApprove] Ordine autorizzato da PayPal, avvio cattura:', data.orderID);
+
           const res = await fetch('/api/paypal/capture-order', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -172,33 +174,57 @@ function PayPalButtonsInner({
             }),
           });
 
-          const captureData: any = await res.json();
+          let captureData: any = {};
+          try {
+            captureData = await res.json();
+          } catch (jsonErr) {
+            console.error('[PAYPAL onApprove] Risposta API non valida o non JSON:', jsonErr);
+            throw new Error(`Risposta del server non valida (HTTP ${res.status}). Ricarica per verificare lo stato dell'ordine.`);
+          }
+
           if (!res.ok || !captureData.success) {
             throw new Error(captureData.error || 'Cattura del pagamento fallita o non confermata.');
           }
 
+          console.log('[PAYPAL onApprove] Pagamento confermato e salvato:', captureData);
+
+          // Pulisci il carrello contestualmente al redirect
           clearCart();
 
           if (onSuccess) {
-            onSuccess(captureData.orderId, captureData.paypalOrderId);
+            onSuccess(captureData.ordineId || captureData.orderId, captureData.paypalOrderId);
           }
 
-          // Reindirizza alla pagina di conferma ordine
-          const orderIdParam = captureData.orderId || data.orderID;
-          const numeroOrdineParam = captureData.numeroOrdine || orderIdParam;
+          // Ricava il codice ordine con priorità: result.codice_ordine || result.id
+          const codiceOrdine = 
+            captureData.codice_ordine || 
+            captureData.codiceOrdine || 
+            captureData.numeroOrdine || 
+            captureData.numero_ordine || 
+            captureData.ordineId || 
+            captureData.orderId || 
+            captureData.id || 
+            data.orderID;
+
+          const orderIdParam = captureData.ordineId || captureData.orderId || captureData.id || data.orderID;
           const nomeParam = encodeURIComponent(cliente.nome || '');
           const telefonoParam = encodeURIComponent(cliente.telefono || '');
           const tipoParam = encodeURIComponent(cliente.tipo_ordine || 'ritiro');
           const dataParam = encodeURIComponent(cliente.data_ritiro || '');
           const fasciaParam = encodeURIComponent(cliente.fascia || '');
 
-          const confirmUrl = `/conferma?id=${encodeURIComponent(orderIdParam)}&ordine=${encodeURIComponent(numeroOrdineParam)}&paypal_id=${encodeURIComponent(data.orderID)}&totale=${encodeURIComponent(amount)}&nome=${nomeParam}&telefono=${telefonoParam}&tipo=${tipoParam}&data=${dataParam}&fascia=${fasciaParam}`;
+          // Reindirizzamento esplicito alla rotta /conferma?ordine=... con fallback immediati
+          const confirmUrl = `/conferma?ordine=${encodeURIComponent(codiceOrdine)}&id=${encodeURIComponent(orderIdParam)}&paypal_id=${encodeURIComponent(data.orderID)}&totale=${encodeURIComponent(amount)}&nome=${nomeParam}&telefono=${telefonoParam}&tipo=${tipoParam}&data=${dataParam}&fascia=${fasciaParam}`;
 
           window.location.href = confirmUrl;
         } catch (err: any) {
+          console.error('[PAYPAL onApprove ERROR]:', err);
           const errorText = err.message || 'Errore durante la conferma del pagamento con PayPal.';
           setFeedback({ type: 'error', message: errorText });
           if (onError) onError(err);
+          if (typeof window !== 'undefined') {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
         }
       }}
       onCancel={() => {

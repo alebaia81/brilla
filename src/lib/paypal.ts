@@ -71,25 +71,34 @@ export async function getPayPalAccessToken(
  */
 export function getPayPalConfig(locals?: any, cfWorkerEnv?: any) {
   let rEnv: any = {};
+  let pEnv: any = {};
   try {
     if (locals && (locals as any).runtime) {
       rEnv = (locals as any).runtime.env || {};
     }
-  } catch {
-    // Astro v6 deprecates locals.runtime.env in favor of cloudflare:workers env
-  }
+  } catch {}
+  try {
+    if (locals && (locals as any).platform) {
+      pEnv = (locals as any).platform.env || {};
+    }
+  } catch {}
 
   const workerEnv = cfWorkerEnv || {};
 
   const clientId =
+    pEnv.PAYPAL_CLIENT_ID ||
+    pEnv.PUBLIC_PAYPAL_CLIENT_ID ||
     rEnv.PAYPAL_CLIENT_ID ||
+    rEnv.PUBLIC_PAYPAL_CLIENT_ID ||
     workerEnv.PAYPAL_CLIENT_ID ||
+    workerEnv.PUBLIC_PAYPAL_CLIENT_ID ||
     import.meta.env.PAYPAL_CLIENT_ID ||
     import.meta.env.PUBLIC_PAYPAL_CLIENT_ID ||
-    (typeof process !== 'undefined' ? process.env?.PAYPAL_CLIENT_ID : undefined) ||
+    (typeof process !== 'undefined' ? (process.env?.PAYPAL_CLIENT_ID || process.env?.PUBLIC_PAYPAL_CLIENT_ID) : undefined) ||
     '';
 
   const clientSecret =
+    pEnv.PAYPAL_CLIENT_SECRET ||
     rEnv.PAYPAL_CLIENT_SECRET ||
     workerEnv.PAYPAL_CLIENT_SECRET ||
     import.meta.env.PAYPAL_CLIENT_SECRET ||
@@ -97,10 +106,15 @@ export function getPayPalConfig(locals?: any, cfWorkerEnv?: any) {
     '';
 
   const paypalEnv =
+    pEnv.PAYPAL_ENV ||
+    pEnv.PUBLIC_PAYPAL_ENV ||
     rEnv.PAYPAL_ENV ||
+    rEnv.PUBLIC_PAYPAL_ENV ||
     workerEnv.PAYPAL_ENV ||
+    workerEnv.PUBLIC_PAYPAL_ENV ||
     import.meta.env.PAYPAL_ENV ||
-    (typeof process !== 'undefined' ? process.env?.PAYPAL_ENV : undefined) ||
+    import.meta.env.PUBLIC_PAYPAL_ENV ||
+    (typeof process !== 'undefined' ? (process.env?.PAYPAL_ENV || process.env?.PUBLIC_PAYPAL_ENV) : undefined) ||
     'sandbox';
 
   return {
