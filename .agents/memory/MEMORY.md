@@ -99,6 +99,7 @@
 
 ## 🚀 Log Ultimi Commit
 
+- `1399159` — feat: complete paypal live flow with order confirmation and qr pass
 - `4817574` — feat: add AI rendering disclaimer to about and hero sections
 - `21f3966` — feat(about): replace unsplash photo with official locale.avif image
 - `dcebda3` — feat(hero): replace external unsplash image with local cappuccino.avif
