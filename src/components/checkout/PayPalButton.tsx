@@ -188,13 +188,6 @@ function PayPalButtonsInner({
 
           console.log('[PAYPAL onApprove] Pagamento confermato e salvato:', captureData);
 
-          // Pulisci il carrello contestualmente al redirect
-          clearCart();
-
-          if (onSuccess) {
-            onSuccess(captureData.ordineId || captureData.orderId, captureData.paypalOrderId);
-          }
-
           // Ricava il codice ordine con priorità: result.codice_ordine || result.id
           const codiceOrdine = 
             captureData.codice_ordine || 
@@ -213,7 +206,47 @@ function PayPalButtonsInner({
           const dataParam = encodeURIComponent(cliente.data_ritiro || '');
           const fasciaParam = encodeURIComponent(cliente.fascia || '');
 
-          // Reindirizzamento esplicito alla rotta /conferma?ordine=... con fallback immediati
+          // Salva i dettagli completi in sessionStorage come fallback immediato per /conferma
+          try {
+            sessionStorage.setItem('brilla_last_order', JSON.stringify({
+              id: orderIdParam,
+              numero_ordine: codiceOrdine,
+              codice_ordine: codiceOrdine,
+              numeroOrdine: codiceOrdine,
+              codiceOrdine: codiceOrdine,
+              cliente_nome: cliente.nome || '',
+              cliente_email: cliente.email || '',
+              cliente_telefono: cliente.telefono || '',
+              tipo_ordine: cliente.tipo_ordine || 'ritiro',
+              totale_ordine: Number(amount),
+              costo_spedizione: Number(shippingCost || 0),
+              data_ritiro_prevista: cliente.data_ritiro || '',
+              fascia_ritiro: cliente.fascia || '',
+              indirizzo_spedizione: cliente.indirizzo || '',
+              citta_spedizione: cliente.citta || '',
+              cap_spedizione: cliente.cap || '',
+              pagamento_id_paypal: data.orderID,
+              stato: 'pagato',
+              ordine_articoli: carrello.map((c: any) => ({
+                id: c.id || crypto.randomUUID(),
+                nome_prodotto: c.nome_prodotto || c.nome || 'Articolo',
+                quantita: c.quantita || 1,
+                prezzo_unitario: Number(c.prezzo_unitario || c.prezzo || 0),
+                subtotale: Number(c.subtotale || (Number(c.prezzo_unitario || c.prezzo || 0) * Number(c.quantita || 1))),
+              })),
+            }));
+          } catch (e) {
+            console.warn('[PAYPAL onApprove] Errore salvataggio sessionStorage:', e);
+          }
+
+          // Pulisci il carrello contestualmente al redirect
+          clearCart();
+
+          if (onSuccess) {
+            onSuccess(captureData.ordineId || captureData.orderId, captureData.paypalOrderId);
+          }
+
+          // Reindirizzamento esplicito alla rotta /conferma?ordine=... con parametri di supporto
           const confirmUrl = `/conferma?ordine=${encodeURIComponent(codiceOrdine)}&id=${encodeURIComponent(orderIdParam)}&paypal_id=${encodeURIComponent(data.orderID)}&totale=${encodeURIComponent(amount)}&nome=${nomeParam}&telefono=${telefonoParam}&tipo=${tipoParam}&data=${dataParam}&fascia=${fasciaParam}`;
 
           window.location.href = confirmUrl;

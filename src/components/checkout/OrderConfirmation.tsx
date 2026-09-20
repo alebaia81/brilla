@@ -72,8 +72,24 @@ export default function OrderConfirmation() {
     if (typeof window === 'undefined') return;
 
     const params = new URLSearchParams(window.location.search);
-    const idParam = params.get('id') || params.get('ordine') || params.get('paypal_id') || '';
-    const ordineParam = params.get('ordine') || idParam;
+    const idParam = 
+      params.get('id') || 
+      params.get('ordine') || 
+      params.get('codice_ordine') || 
+      params.get('codiceOrdine') || 
+      params.get('numero_ordine') || 
+      params.get('numeroOrdine') || 
+      params.get('paypal_id') || 
+      '';
+
+    const ordineParam = 
+      params.get('ordine') || 
+      params.get('codice_ordine') || 
+      params.get('codiceOrdine') || 
+      params.get('numero_ordine') || 
+      params.get('numeroOrdine') || 
+      idParam;
+
     const nomeParam = params.get('nome') || '';
     const telefonoParam = params.get('telefono') || '';
     const totaleParam = params.get('totale') || '0.00';
@@ -82,35 +98,77 @@ export default function OrderConfirmation() {
     const fasciaParam = params.get('fascia') || '';
     const paypalIdParam = params.get('paypal_id') || '';
 
+    // 1. Tentativo di caricamento fallback immediato da sessionStorage
+    let sessionFallback: any = null;
+    try {
+      const raw = sessionStorage.getItem('brilla_last_order');
+      if (raw) {
+        sessionFallback = JSON.parse(raw);
+        if (sessionFallback) {
+          setOrder(sessionFallback);
+          setLoading(false);
+        }
+      }
+    } catch (e) {
+      console.warn('[ORDER CONFIRMATION] Errore lettura sessionStorage:', e);
+    }
+
     setUrlParams({
       id: idParam,
       ordine: ordineParam,
-      nome: nomeParam,
-      telefono: telefonoParam,
-      totale: totaleParam,
-      tipo: tipoParam,
-      data: dataParam,
-      fascia: fasciaParam,
-      paypalId: paypalIdParam,
+      nome: nomeParam || sessionFallback?.cliente_nome || '',
+      telefono: telefonoParam || sessionFallback?.cliente_telefono || '',
+      totale: totaleParam !== '0.00' ? totaleParam : (sessionFallback?.totale_ordine ? String(sessionFallback.totale_ordine) : '0.00'),
+      tipo: tipoParam || sessionFallback?.tipo_ordine || 'ritiro',
+      data: dataParam || sessionFallback?.data_ritiro_prevista || '',
+      fascia: fasciaParam || sessionFallback?.fascia_ritiro || '',
+      paypalId: paypalIdParam || sessionFallback?.pagamento_id_paypal || '',
     });
 
-    if (!idParam) {
+    if (!idParam && !sessionFallback) {
       setLoading(false);
       return;
     }
 
-    // Interroga D1 tramite l'API /api/ordini?id=...
+    // 2. Interroga D1 tramite l'API /api/ordini?id=... (usando idParam o il numero d'ordine da sessione)
+    const targetQueryId = idParam || sessionFallback?.numero_ordine || sessionFallback?.id;
+    if (!targetQueryId) {
+      setLoading(false);
+      return;
+    }
+
     const fetchOrderData = async () => {
       try {
-        const res = await fetch(`/api/ordini?id=${encodeURIComponent(idParam)}`);
+        const res = await fetch(`/api/ordini?id=${encodeURIComponent(targetQueryId)}`);
         if (res.ok) {
-          const data = (await res.json()) as OrderData;
-          if (data && data.id) {
-            setOrder(data);
+          const data = (await res.json()) as any;
+          if (data && (data.id || data.numero_ordine || data.codice_ordine)) {
+            setOrder({
+              ...data,
+              id: data.id,
+              numero_ordine: data.numero_ordine || data.codice_ordine || data.numeroOrdine || data.codiceOrdine || targetQueryId,
+              cliente_nome: data.cliente_nome || data.nome || 'Cliente',
+              cliente_email: data.cliente_email || data.email,
+              cliente_telefono: data.cliente_telefono || data.telefono,
+              tipo_ordine: data.tipo_ordine || data.tipo || 'ritiro',
+              stato: data.stato || 'pagato',
+              totale_ordine: Number(data.totale_ordine ?? data.totale ?? 0),
+              data_ritiro_prevista: data.data_ritiro_prevista || data.data_ritiro || data.data,
+              fascia_ritiro: data.fascia_ritiro || data.fascia,
+              indirizzo_spedizione: data.indirizzo_spedizione || data.indirizzo,
+              citta_spedizione: data.citta_spedizione || data.citta,
+              cap_spedizione: data.cap_spedizione || data.cap,
+              costo_spedizione: Number(data.costo_spedizione || 0),
+              totale_articoli: Number(data.totale_articoli || 0),
+              note_cliente: data.note_cliente || data.note,
+              pagamento_id_paypal: data.pagamento_id_paypal || data.paypal_id,
+              creato_il: data.creato_il || data.created_at,
+              ordine_articoli: Array.isArray(data.ordine_articoli) ? data.ordine_articoli : (Array.isArray(data.articoli) ? data.articoli : []),
+            });
           }
         }
       } catch (err) {
-        console.warn('[ORDER CONFIRMATION] Impossibile recuperare i dettagli da D1, uso parametri URL:', err);
+        console.warn('[ORDER CONFIRMATION] Impossibile recuperare i dettagli da D1, uso fallback:', err);
       } finally {
         setLoading(false);
       }
@@ -125,14 +183,22 @@ export default function OrderConfirmation() {
     }
   };
 
-  // Risoluzione dei valori reali (preferenza ai dati estratti dal DB D1)
-  const orderNumber = order?.numero_ordine || urlParams.ordine || urlParams.id || 'IN ELABORAZIONE';
+  // Risoluzione dei valori reali (preferenza ai dati estratti dal DB D1 o sessionStorage)
+  const orderNumber = 
+    order?.numero_ordine || 
+    (order as any)?.codice_ordine || 
+    (order as any)?.codiceOrdine || 
+    (order as any)?.numeroOrdine || 
+    urlParams.ordine || 
+    urlParams.id || 
+    'IN ELABORAZIONE';
+
   const tipo = (order?.tipo_ordine || urlParams.tipo) as 'ritiro' | 'spedizione';
-  const nome = order?.cliente_nome || urlParams.nome || 'Cliente';
-  const telefono = order?.cliente_telefono || urlParams.telefono || '';
-  const totale = order ? Number(order.totale_ordine).toFixed(2) : Number(urlParams.totale).toFixed(2);
-  const dataRitiro = order?.data_ritiro_prevista || urlParams.data || '';
-  const fascia = order?.fascia_ritiro || urlParams.fascia || '';
+  const nome = order?.cliente_nome || (order as any)?.nome || urlParams.nome || 'Cliente';
+  const telefono = order?.cliente_telefono || (order as any)?.telefono || urlParams.telefono || '';
+  const totale = order ? Number(order.totale_ordine ?? (order as any).totale ?? 0).toFixed(2) : Number(urlParams.totale).toFixed(2);
+  const dataRitiro = order?.data_ritiro_prevista || (order as any)?.data_ritiro || urlParams.data || '';
+  const fascia = order?.fascia_ritiro || (order as any)?.fascia || urlParams.fascia || '';
   const isPaid = order?.stato === 'pagato' || Boolean(order?.pagamento_id_paypal) || Boolean(urlParams.paypalId);
   const articoli = order?.ordine_articoli || [];
 

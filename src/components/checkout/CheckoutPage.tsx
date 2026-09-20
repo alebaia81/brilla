@@ -142,9 +142,39 @@ export const CheckoutPage = () => {
 
       console.log('[ORDINE SALVATO SU D1]:', resData);
 
+      // Salva l'ordine in sessionStorage come fallback immediato per /conferma
+      try {
+        sessionStorage.setItem('brilla_last_order', JSON.stringify({
+          id: resData.id || resData.ordineId || orderNumber,
+          numero_ordine: orderNumber,
+          codice_ordine: orderNumber,
+          numeroOrdine: orderNumber,
+          codiceOrdine: orderNumber,
+          cliente_nome: nome,
+          cliente_email: email,
+          cliente_telefono: telefono,
+          tipo_ordine: orderType,
+          stato: 'in_sospeso',
+          data_ritiro_prevista: dataRitiro,
+          fascia_ritiro: fascia,
+          totale_ordine: finalTotal,
+          costo_spedizione: 0,
+          totale_articoli: subtotal,
+          ordine_articoli: items.map((it: CartItem) => ({
+            id: it.id,
+            nome_prodotto: it.nome,
+            quantita: it.quantita,
+            prezzo_unitario: it.prezzo_scontato && it.prezzo_scontato > 0 ? it.prezzo_scontato : (it.prezzo || 0),
+            subtotale: Number(((it.prezzo_scontato && it.prezzo_scontato > 0 ? it.prezzo_scontato : (it.prezzo || 0)) * it.quantita).toFixed(2)),
+          })),
+        }));
+      } catch (e) {
+        console.warn('[CHECKOUT] Errore salvataggio sessionStorage:', e);
+      }
+
       // Pulisci il carrello ed effettua il redirect alla pagina di conferma
       clearCart();
-      window.location.href = `/conferma?ordine=${orderNumber}&tipo=${orderType}&nome=${encodeURIComponent(nome)}&telefono=${encodeURIComponent(telefono)}&totale=${finalTotal.toFixed(2)}&fascia=${encodeURIComponent(fascia)}&data=${encodeURIComponent(dataRitiro)}`;
+      window.location.href = `/conferma?ordine=${orderNumber}&id=${resData.id || resData.ordineId || orderNumber}&tipo=${orderType}&nome=${encodeURIComponent(nome)}&telefono=${encodeURIComponent(telefono)}&totale=${finalTotal.toFixed(2)}&fascia=${encodeURIComponent(fascia)}&data=${encodeURIComponent(dataRitiro)}`;
     } catch (err: any) {
       console.error('[ECCEZIONE CREAZIONE ORDINE]:', err);
       setErrorMsg(`Errore registrazione ordine: ${err.message || 'Riprova tra poco.'}`);

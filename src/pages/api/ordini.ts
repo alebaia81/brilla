@@ -5,14 +5,22 @@ export const prerender = false;
 
 function getDb(locals: any): any {
   try {
+    const pEnv = (locals as any)?.platform?.env;
+    if (pEnv?.DB || pEnv?.['brilla-cafe-db']) {
+      return pEnv.DB || pEnv['brilla-cafe-db'];
+    }
+  } catch {}
+  try {
     const rEnv = (locals as any)?.runtime?.env;
     if (rEnv?.DB || rEnv?.['brilla-cafe-db']) {
       return rEnv.DB || rEnv['brilla-cafe-db'];
     }
   } catch {}
-  if (typeof env !== 'undefined' && env) {
-    return env.DB || (env as any)['brilla-cafe-db'];
-  }
+  try {
+    if (typeof env !== 'undefined' && env) {
+      return (env as any).DB || (env as any)['brilla-cafe-db'];
+    }
+  } catch {}
   return undefined;
 }
 
@@ -29,7 +37,14 @@ export const GET: APIRoute = async ({ request, locals }) => {
     const url = new URL(request.url);
     const checkLatest = url.searchParams.get('check_latest') === 'true';
     const lastId = url.searchParams.get('last_id');
-    const singleId = url.searchParams.get('id') || url.searchParams.get('orderId') || url.searchParams.get('ordine');
+    const singleId = 
+      url.searchParams.get('id') || 
+      url.searchParams.get('orderId') || 
+      url.searchParams.get('ordine') || 
+      url.searchParams.get('numero_ordine') || 
+      url.searchParams.get('numeroOrdine') || 
+      url.searchParams.get('codice_ordine') || 
+      url.searchParams.get('codiceOrdine');
 
     // Recupero dettagli di un singolo ordine
     if (singleId) {
@@ -50,6 +65,15 @@ export const GET: APIRoute = async ({ request, locals }) => {
 
       return new Response(JSON.stringify({
         ...order,
+        id: order.id,
+        ordineId: order.id,
+        orderId: order.id,
+        numero_ordine: order.numero_ordine,
+        codice_ordine: order.numero_ordine,
+        numeroOrdine: order.numero_ordine,
+        codiceOrdine: order.numero_ordine,
+        totale_ordine: order.totale_ordine,
+        totale: order.totale_ordine,
         ordine_articoli: itemsRes.results || [],
       }), {
         status: 200,
@@ -242,7 +266,12 @@ export const POST: APIRoute = async ({ request, locals }) => {
     return new Response(JSON.stringify({ 
       success: true, 
       id: orderId, 
-      numero_ordine 
+      orderId,
+      ordineId: orderId,
+      numero_ordine,
+      codice_ordine: numero_ordine,
+      numeroOrdine: numero_ordine,
+      codiceOrdine: numero_ordine,
     }), {
       status: 201,
       headers: { 'Content-Type': 'application/json' },
