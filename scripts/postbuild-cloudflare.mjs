@@ -34,11 +34,21 @@ if (existsSync(clientDir)) {
 }
 
 // 3. Genera _routes.json per Cloudflare Pages
-// Garantisce che tutte le chiamate /api/* vengano instradate al worker e gli asset statici alla CDN
+// Instrada API e rotte dinamiche/fallback al Worker, lasciando gli asset statici alla CDN
 const routesJson = JSON.stringify({
   version: 1,
-  include: ['/api/*'],
-  exclude: []
+  include: [
+    '/api/*',
+    '/conferma',
+    '/conferma/*',
+    '/ordine-confermato',
+    '/ordine-confermato/*'
+  ],
+  exclude: [
+    '/_astro/*',
+    '/favicon.*',
+    '/images/*'
+  ]
 }, null, 2);
 
 writeFileSync(resolve(distDir, '_routes.json'), routesJson, 'utf-8');

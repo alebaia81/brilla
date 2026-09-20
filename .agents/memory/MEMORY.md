@@ -99,6 +99,7 @@
 
 ## 🚀 Log Ultimi Commit
 
+- `6852bcf` — fix(cloudflare): prerender conferma page statically and update _routes.json
 - `e7f4f0d` — fix(checkout): align d1 order fields, support platform.env in api/ordini and add session fallback to OrderConfirmation
 - `ed4d692` — fix(wrangler): set real d1 database uuid in wrangler.toml
 - `4817574` — feat: add AI rendering disclaimer to about and hero sections
