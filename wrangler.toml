@@ -6,7 +6,7 @@ compatibility_flags = ["nodejs_compat"]
 [[d1_databases]]
 binding = "DB"
 database_name = "brilla-cafe-db"
-database_id = "brilla-cafe-db"
+database_id = "8f9a989b-d4f9-4229-b90d-70c3150930f3"
 
 # Cloudflare R2 Storage Bucket
 [[r2_buckets]]
